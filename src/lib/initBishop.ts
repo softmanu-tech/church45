@@ -18,6 +18,6 @@ export const initBishop = async () => {
             password: hash,
             role: "bishop"
         })
-        console.log("✅ Bishop account created")
+        console.log("Bishop account created")
     }
 }

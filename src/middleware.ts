@@ -13,7 +13,7 @@ interface AuthToken {
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const loginUrl = new URL('/login', request.url);
-    const leaderDashboardUrl = new URL('/dashboard/leaders', request.url);
+    const leaderDashboardUrl = new URL('/dashboard/leader', request.url);
     const bishopDashboardUrl = new URL('/dashboard/bishop', request.url);
 
     try {
@@ -38,7 +38,7 @@ export async function middleware(request: NextRequest) {
             return NextResponse.next();
         }
 
-        if (pathname.startsWith('/leaders')) {
+        if (pathname.startsWith('/leader')) {
             if (token.role !== 'leader') {
                 return NextResponse.redirect(bishopDashboardUrl);
             }
@@ -59,6 +59,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
     matcher: [
         '/dashboard/:path*',
-        // Add other paths you want to protect
+        
     ],
 };
