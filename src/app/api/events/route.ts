@@ -9,6 +9,15 @@ import dbConnect from '@/lib/dbConnect'
 export async function GET(request: Request) {
 
     await dbConnect()
+    const url = new URL(request.url)
+  const page = Number(url.searchParams.get('page')) || 1
+  const limit = Number(url.searchParams.get('limit')) || 10
+  const groupId = url.searchParams.get('groupId') || undefined
+  const startDate = url.searchParams.get('startDate')
+  const endDate = url.searchParams.get('endDate')
+
+  const filter:  = {}
+
 
 
     try {
