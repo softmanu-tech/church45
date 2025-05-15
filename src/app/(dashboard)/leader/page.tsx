@@ -132,6 +132,19 @@ export default function LeaderDashboard() {
           </CardContent>
         </Card>
       </motion.div>
+      {/* Error Handling */}
+      {error && (
+        <motion.div
+          initial="hidden"
+          animate="show"
+          variants={fadeIn("up", "spring", 0.4, 1)}
+          className="mb-6"
+        >
+          <div className="bg-red-100 text-red-700 p-4 rounded-md">
+            <p>{error}</p>
+          </div>
+        </motion.div>
+      )}
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
