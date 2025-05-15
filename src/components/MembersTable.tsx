@@ -71,7 +71,7 @@ export function MembersTable({ members, groupId, onMemberAdded }: MembersTablePr
       }
 
       // Reset form and refresh data
-      setNewMember({ name: "", email: "", phone: "" ,})
+      setNewMember({ name: "", email: "", phone: "" , location: "", department: "" })
       setIsAddDialogOpen(false)
       onMemberAdded()
       toast.success("Member added successfully")
