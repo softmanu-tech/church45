@@ -32,7 +32,9 @@ export async function GET(request: Request) {
         .limit(limit)
         .lean()
 
-        
+        const total = await Event.countDocuments(filter)
+        // For each event, fetch attendance count
+        // attendance is stored in event.attendance as array of member IDs or similar
 
 
 
