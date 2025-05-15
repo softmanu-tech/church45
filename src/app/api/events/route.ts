@@ -18,6 +18,14 @@ export async function GET(request: Request) {
 
   const filter:  = {}
 
+  if (groupId) filter.group = groupId
+    if (startDate || endDate) {
+        filter.date = {}
+        if (startDate) filter.date.$gte = new Date(startDate)
+        if (endDate) filter.date.$lte = new Date(endDate)
+    }
+
+
 
 
     try {
