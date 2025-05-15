@@ -91,7 +91,7 @@ export default function LeaderDashboard() {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold">No group assigned</h2>
-          <p className="text-gray-500">Please contact the bishop to be assigned to a group.</p>
+          <p className="text-gray-500">Msiniboo.</p>
         </div>
       </div>
     )
