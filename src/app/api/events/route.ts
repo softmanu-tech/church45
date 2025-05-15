@@ -1,9 +1,9 @@
 // src/app/api/events/route.ts
 import { NextResponse } from 'next/server'
-import { authOptions } from '@/lib/auth'
-import dbConnect from '@/lib/dbConnect'
 import { Event } from '@/lib/models/Event'
 import { Group } from '@/lib/models/Group'
+import { User } from '@/lib/models/User'
+
 
 export async function POST(request: Request) {
     const session = await getServerSession(authOptions)
