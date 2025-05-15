@@ -43,7 +43,7 @@ export default function LeaderDashboard() {
   const fetchLeaderData = async () => {
     try {
       setLoading(true)
-      // Use the correct API path that matches your route.ts file location
+      
       const res = await fetch("/api/leader")
 
       if (!res.ok) {
