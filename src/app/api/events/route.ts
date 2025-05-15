@@ -42,42 +42,10 @@ export async function GET(request: Request) {
             return { ...event, attendanceCount }
         }))
 
-    return NextResponse.json({})
-
-
-
-    try {
-        // Verify the group exists and the user is its leader
-        const group = await Group.findById(groupId)
-        if (!group) {
-            return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-        }
-
-        // Create the event
-        const newEvent = new Event({
-            title,
-            date: new Date(date),
-            description,
-            group: groupId,
-            createdBy: session.user.id
-        })
-
-        await newEvent.save()
-
-        return NextResponse.json({
-            _id: newEvent._id.toString(),
-            title: newEvent.title,
-            date: newEvent.date.toISOString(),
-            description: newEvent.description,
-            groupId: newEvent.group.toString(),
-            createdBy: newEvent.createdBy.toString()
-        })
-
-    } catch (error) {
-        console.error('Error creating event:', error)
-        return NextResponse.json(
-            { error: 'Failed to create event' },
-            { status: 500 }
-        )
-    }
+    return NextResponse.json({
+        events: eventsWithAttendance,
+        total,
+        page,
+        limit,
+    })
 }
