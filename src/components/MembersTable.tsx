@@ -14,6 +14,8 @@ interface Member {
   name: string
   email: string
   phone: string
+  location: string
+  
 }
 
 interface MembersTableProps {
