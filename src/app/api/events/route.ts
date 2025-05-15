@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const startDate = url.searchParams.get('startDate')
   const endDate = url.searchParams.get('endDate')
 
-  const filter: = {}
+  const filter: any = {}
 
   if (groupId) filter.group = groupId
     if (startDate || endDate) {
