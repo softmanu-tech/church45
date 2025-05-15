@@ -9,8 +9,8 @@ import { motion } from "framer-motion"
 import { fadeIn } from "@/lib/motion"
 import { CreateEventForm } from "@/components/CreateEventForm"
 import { MarkAttendanceForm } from "@/components/MarkAttendanceForm"
-import { MembersTable } from "@/components/MembersTable"
-import { CreateMemberForm } from "@/components/CreateMemberForm"
+import { MembersTable } from "./components/MembersTable"
+import { toast } from "sonner"
 
 interface Group {
   _id: string
@@ -43,10 +43,14 @@ export default function LeaderDashboard() {
   const fetchLeaderData = async () => {
     try {
       setLoading(true)
+      // Use the correct API path that matches your route.ts file location
       const res = await fetch("/api/leader")
+
       if (!res.ok) {
-        throw new Error("Failed to fetch leader data")
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to fetch leader data")
       }
+
       const data = await res.json()
 
       setGroup(data.group || null)
@@ -54,6 +58,7 @@ export default function LeaderDashboard() {
       setMembers(data.members || [])
     } catch (error) {
       console.error("Error fetching leader data:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to fetch leader data")
     } finally {
       setLoading(false)
     }
@@ -91,7 +96,7 @@ export default function LeaderDashboard() {
       <div className="flex justify-center items-center h-screen">
         <div className="text-center">
           <h2 className="text-xl font-semibold">No group assigned</h2>
-          <p className="text-gray-500">Msiniboo.</p>
+          <p className="text-gray-500">Please contact the bishop to be assigned to a group.</p>
         </div>
       </div>
     )
@@ -197,11 +202,7 @@ export default function LeaderDashboard() {
                 <CardTitle>Group Members</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium mb-4">Add New Member</h3>
-                  <CreateMemberForm groupId={group._id} onMemberCreated={handleMemberCreated} />
-                </div>
-                <MembersTable members={members} groupId={group._id} onMemberAdded={fetchLeaderData} />
+                <MembersTable members={members} groupId={group._id} onMemberAdded={handleMemberCreated} />
               </CardContent>
             </Card>
           </motion.div>
