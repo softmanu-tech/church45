@@ -35,6 +35,7 @@ interface Member {
 export default function LeaderDashboard() {
   const [group, setGroup] = useState<Group | null>(null)
   const [events, setEvents] = useState<Event[]>([])
+  const [attendance, setAttendance] = useState<Atte[]>([]) // Adjust type as needed
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("events")
@@ -43,7 +44,7 @@ export default function LeaderDashboard() {
   const fetchLeaderData = async () => {
     try {
       setLoading(true)
-      
+
       const res = await fetch("/api/leader")
 
       if (!res.ok) {
