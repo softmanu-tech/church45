@@ -1,7 +1,5 @@
 // src/app/api/events/[eventId]/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import { Event } from '@/lib/models/Event'
 
@@ -9,10 +7,7 @@ export async function GET(
     request: Request,
     { params }: { params: { eventId: string } }
 ) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    
 
     await dbConnect()
 
