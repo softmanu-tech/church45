@@ -34,7 +34,15 @@ export async function GET(request: Request) {
 
         const total = await Event.countDocuments(filter)
         // For each event, fetch attendance count
-        // attendance is stored in event.attendance as array of member IDs or similar
+        // Attendance is stored in event.attendance as array of member IDs or similar
+
+        const eventsWithAttendance = await Promise.all(events.map(async (event) => {
+            // Example: attendance count = event.attendance.length
+            const attendanceCount = event.attendance ? event.attendance.length : 0
+            return { ...event, attendanceCount }
+        }))
+
+    return NextResponse.json({})
 
 
 
