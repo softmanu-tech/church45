@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     const { eventId, memberId, attended } = await req.json();
-    const leaderId = session.user;
+    const leaderId = session.user.id;
 
     // Validate IDs
     if (
