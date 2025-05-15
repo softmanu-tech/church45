@@ -51,7 +51,7 @@ export default function LeaderDashboard() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to fetch leader data")
+        console
       }
 
       const data = await res.json()
