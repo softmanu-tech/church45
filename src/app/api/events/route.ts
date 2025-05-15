@@ -3,9 +3,12 @@ import { NextResponse } from 'next/server'
 import { Event } from '@/lib/models/Event'
 import { Group } from '@/lib/models/Group'
 import { User } from '@/lib/models/User'
+import dbConnect from '@/lib/dbConnect'
 
 
 export async function GET(request: Request) {
+
+    await dbConnect()
 
     
     const session = await getServerSession()
