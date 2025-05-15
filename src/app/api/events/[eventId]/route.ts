@@ -20,6 +20,7 @@ const EventSchema: Schema<IEvent> = new Schema(
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
     attendance: [{ type: Schema.Types.ObjectId, ref: "Member" }],
+    
   },
   { timestamps: true }
 );
