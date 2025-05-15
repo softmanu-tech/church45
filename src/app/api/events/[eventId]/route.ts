@@ -3,7 +3,8 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IGroup extends Document {
   name: string;
-  leader: mongoose.Types.ObjectId; // ref to User with role leader
+  leader?: mongoose.Types.ObjectId; // ref to User with role leader
+  
   createdAt: Date;
   updatedAt: Date;
 }
