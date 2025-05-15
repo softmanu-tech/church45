@@ -46,7 +46,7 @@ export default function LeaderDashboard() {
       setLoading(true)
       setError("")
 
-      const res = await fetch("/api/leader")
+      const res = await fetch("/api/group/leader")
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
