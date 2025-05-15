@@ -9,7 +9,7 @@ import { motion } from "framer-motion"
 import { fadeIn } from "@/lib/motion"
 import { CreateEventForm } from "@/components/CreateEventForm"
 import { MarkAttendanceForm } from "@/components/MarkAttendanceForm"
-import { MembersTable } from "./components/MembersTable"
+import { MembersTable } from "@/components/MembersTable"
 import { toast } from "sonner"
 
 interface Group {
