@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   const startDate = url.searchParams.get('startDate')
   const endDate = url.searchParams.get('endDate')
 
-  const filter: unknown = {}
+  const filter:  = {}
 
   if (groupId) filter.group = groupId
     if (startDate || endDate) {
@@ -25,6 +25,14 @@ export async function GET(request: Request) {
         if (endDate) filter.date.$lte = new Date(endDate)
     }
     const skip = (page - 1) * limit
+
+    const events = await Event.find(filter)
+        .sort({ date: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+
+        
 
 
 
