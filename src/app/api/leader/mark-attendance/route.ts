@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!event.attendance) event.attendance = [];
 
     if (attended) {
-      if (!event.attendance.includes(member._id)) event.attendance.push(member._id);
+      if (!event.attendance.includes(memberId._id)) event.attendance.push(member._id);
     } else {
       event.attendance = event.attendance.filter((id) => id.toString() !== member._id.toString());
     }

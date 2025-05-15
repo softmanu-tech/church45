@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import { Attendance, IAttendance } from '@/lib/models/Attendance'
-import { Group  from '@/lib/models/Group'
+import  Group  from '@/lib/models/Group'
 
 interface AttendanceRequest {
     date: string
