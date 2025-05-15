@@ -1,6 +1,5 @@
 // src/app/api/events/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import dbConnect from '@/lib/dbConnect'
 import { Event } from '@/lib/models/Event'
