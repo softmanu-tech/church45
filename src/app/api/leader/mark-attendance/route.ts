@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { requireSessionAndRole } from "../../../lib/authMiddleware";
 import Group from "@/lib/models/Group";
+import Event from "@/lib/models/Event";
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
