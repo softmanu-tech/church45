@@ -46,11 +46,12 @@ export default function LeaderDashboard() {
       setLoading(true)
       setError("")
 
-      const res = await fetch("/api/group/leader")
+      const res = await fetch("/api/leader")
+      console.log("Response:", res)
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
-        console.error("Error fetching leader data:", errorData)
+        throw new Error(errorData.error || "Failed to fetch leader data")
       }
 
       const data = await res.json()
@@ -132,18 +133,7 @@ export default function LeaderDashboard() {
         </Card>
       </motion.div>
       {/* Error Handling */}
-      {error && (
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={fadeIn("up", "spring", 0.4, 1)}
-          className="mb-6"
-        >
-          <div className="bg-red-100 text-red-700 p-4 rounded-md">
-            <p>{error}</p>
-          </div>
-        </motion.div>
-      )}
+      
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
