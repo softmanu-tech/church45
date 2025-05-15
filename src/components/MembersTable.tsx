@@ -15,7 +15,8 @@ interface Member {
   email: string
   phone: string
   location: string
-  
+  department: string
+
 }
 
 interface MembersTableProps {
@@ -32,6 +33,8 @@ export function MembersTable({ members, groupId, onMemberAdded }: MembersTablePr
     name: "",
     email: "",
     phone: "",
+    location: "",
+    department: "",
   })
   const [editMember, setEditMember] = useState<Member | null>(null)
   const [deleteMember, setDeleteMember] = useState<Member | null>(null)
@@ -68,7 +71,7 @@ export function MembersTable({ members, groupId, onMemberAdded }: MembersTablePr
       }
 
       // Reset form and refresh data
-      setNewMember({ name: "", email: "", phone: "" })
+      setNewMember({ name: "", email: "", phone: "" ,})
       setIsAddDialogOpen(false)
       onMemberAdded()
       toast.success("Member added successfully")
