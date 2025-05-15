@@ -38,13 +38,13 @@ export default function LeaderDashboard() {
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("events")
-  const [error, setError] = useState("")
+  //const [error, setError] = useState("")
 
   // Fetch leader data from the API
   const fetchLeaderData = async () => {
     try {
       setLoading(true)
-      setError("")
+      //setError("")
 
       const res = await fetch("/api/leader")
       console.log("Response:", res)
