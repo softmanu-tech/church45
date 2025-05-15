@@ -7,7 +7,7 @@ import { Event, type IEvent } from "@/lib/models/Event"
 
 export async function GET() {
   try {
-    // Authenticate the user
+    // Authenticate user
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -28,8 +28,8 @@ export async function GET() {
 
     // Fetch group events
     const events = await Event.find({ group: leader.group._id })
-      .sort({ date: 1 }) // Sort by date ascending
-      .lean<IEvent[]>() // Return plain JavaScript objects
+      .sort({ date: 1 }) 
+      .lean<IEvent[]>() 
 
     // Fetch group members
     const members = await User.find({ group: leader.group._id, role: "member" })
@@ -47,7 +47,7 @@ export async function GET() {
         title: event.title,
         date: event.date.toISOString(),
         description: event.description,
-        groupId: leader.group._id.toString(), // Add groupId to match frontend expectations
+        groupId: leader.group._id.toString(), 
       })),
       members: members.map((member) => ({
         _id: member._id.toString(),
