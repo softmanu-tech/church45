@@ -5,9 +5,10 @@ import { Group } from '@/lib/models/Group'
 import { User } from '@/lib/models/User'
 
 
-export async function POST(request: Request) {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+export async function GET(request: Request) {
+
+    
+    const session = await getServerSession()
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
