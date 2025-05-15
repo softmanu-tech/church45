@@ -39,6 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     res.status(200).json({ message: "Attendance updated", attendance: event.attendance });
   } catch (error) {
-    res.status(500).json({ error.message });
+    res.status(500).json({ error: "Internal server error" });
+    console.error("Error updating attendance:", error);
   }
 }
