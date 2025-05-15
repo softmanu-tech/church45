@@ -10,21 +10,6 @@ export async function GET(request: Request) {
 
     await dbConnect()
 
-    
-    const session = await getServerSession()
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { title, date, description, groupId } = await request.json()
-
-    if (!title || !date || !groupId) {
-        return NextResponse.json(
-            { error: 'Title, date and group ID are required' },
-            { status: 400 }
-        )
-    }
-
-    await dbConnect()
 
     try {
         // Verify the group exists and the user is its leader
