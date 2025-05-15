@@ -5,6 +5,7 @@ export interface IMember extends Document {
   name: string;
   email: string;
   phone?: string;
+  lo
   group: mongoose.Types.ObjectId; // ref to Group
   createdAt: Date;
   updatedAt: Date;
