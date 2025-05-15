@@ -1,11 +1,28 @@
-// lib/models/Member.ts
-import mongoose from 'mongoose';
+// models/Member.ts
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-const MemberSchema = new mongoose.Schema({
+export interface IMember extends Document {
+  name: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  location?: string;
+  group: mongoose.Types.ObjectId; // ref to Group
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const MemberSchema: Schema<IMember> = new Schema(
+  {
     name: { type: String, required: true },
-    phone: { type: String, required: true },
-    group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-}, { timestamps: true });
+    email: { type: String},
+    phone: { type: String },
+    department: { type: String },
+    location: { type: String },
+    group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.models.Member || mongoose.model('Member', MemberSchema);
+const Member: Model<IMember> = mongoose.models.Member || mongoose.model<IMember>("Member", MemberSchema);
+export default Member;
