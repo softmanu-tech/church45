@@ -35,7 +35,7 @@ interface Member {
 export default function LeaderDashboard() {
   const [group, setGroup] = useState<Group | null>(null)
   const [events, setEvents] = useState<Event[]>([])
-  const [attendance, setAttendance] = useState<Atte[]>([]) // Adjust type as needed
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]) // Adjust type as needed
   const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("events")
