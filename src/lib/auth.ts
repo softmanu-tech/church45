@@ -2,7 +2,6 @@
 import NextAuth, { type NextAuthOptions, type User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import UserModel from "./models/User";
 import dbConnect from "./dbConnect";
 
 // Extend NextAuth User type with your custom properties
