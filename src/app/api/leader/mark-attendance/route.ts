@@ -1,6 +1,6 @@
 // pages/api/leader/mark-attendance.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { requireSessionAndRole } from "../../../lib/authMiddleware";
+import { requireSessionAndRole } from "@/lib/authMiddleware";
 import Group from "@/lib/models/Group";
 import Event from "@/lib/models/Event";
 import Member from "@/lib/models/Member";
