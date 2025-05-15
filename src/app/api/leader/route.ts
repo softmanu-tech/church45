@@ -15,7 +15,7 @@ export async function GET() {
 
     await dbConnect()
 
-    // Fetch the leader's group
+    // Fetch leader's group
     const leader = await User.findById(session.user.id).populate("group")
     if (!leader?.group) {
       return NextResponse.json({ group: null, events: [], members: [] })
