@@ -3,6 +3,7 @@ import NextAuth, { type NextAuthOptions, type User as NextAuthUser } from "next-
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import dbConnect from "./dbConnect";
+import { User } from "./models/User";
 
 // Extend NextAuth User type with your custom properties
 interface IUser extends NextAuthUser {
@@ -39,7 +40,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
-        const user = await UserModel.findOne({ email: credentials.email });
+        const user = await User.findOne({ email: credentials.email });
         if (!user) {
           throw new Error("No user found with the given email");
         }
