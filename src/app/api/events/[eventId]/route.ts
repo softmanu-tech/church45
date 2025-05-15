@@ -1,4 +1,5 @@
 // models/Event.ts
+import { User } from "@/lib/models/User";
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IEvent extends Document {
@@ -7,6 +8,7 @@ export interface IEvent extends Document {
   location?: string;
   group: mongoose.Types.ObjectId; // ref to Group
   attendance: mongoose.Types.ObjectId[]; // member IDs who attended
+  createdBy: mongoose.Types.ObjectId | typeof User
   createdAt: Date;
   updatedAt: Date;
 }
