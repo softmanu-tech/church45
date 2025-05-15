@@ -15,8 +15,9 @@ export interface IMember extends Document {
 const MemberSchema: Schema<IMember> = new Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true },
+    email: { type: String},
     phone: { type: String },
+    department: { type: String },
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
   },
