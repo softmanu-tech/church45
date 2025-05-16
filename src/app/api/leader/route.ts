@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
-import Group, { IGroup } from '@/lib/models/Group';
+import  { IGroup } from '@/lib/models/Group';
 import Event, { IEvent } from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
