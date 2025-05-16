@@ -17,7 +17,17 @@ interface AttendanceRequest {
 
 export async function POST(request: Request) {
   try {
-    const session = await requireSessionAndRole(request, 'leader') // Assuming leader role is required
+    const session = await requireSessionAndRole(request, 'leader')
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    // Check if the user is a leader
+    const { session: { user } } = session
+
+    
+    
+    // Assuming leader role is required
 
     const { date, groupId, presentIds }: AttendanceRequest = await request.json()
 
@@ -56,7 +66,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
 
-    if (!group.leader || group.leader.toString() !== session.user.id) {
+    if (!group.leader || group.leader.toString() !== user.id) {
       return NextResponse.json(
         { error: 'Only group leaders can record attendance' },
         { status: 403 }
@@ -81,7 +91,7 @@ export async function POST(request: Request) {
 
     if (existingAttendance) {
       existingAttendance.presentMembers = presentObjectIds
-      existingAttendance.updatedBy = new Types.ObjectId(session.user.id)
+      existingAttendance.updatedBy = new Types.ObjectId(user.id)
       existingAttendance.updatedAt = new Date()
 
       await existingAttendance.save()
@@ -104,8 +114,8 @@ export async function POST(request: Request) {
       group: group._id,
       presentMembers: presentObjectIds,
       absentMembers: group.members.filter(memberId => !presentIds.includes(memberId.toString())),
-      recordedBy: new Types.ObjectId(session.user.id),
-      updatedBy: new Types.ObjectId(session.user.id),
+      recordedBy: new Types.ObjectId(user.id),
+      updatedBy: new Types.ObjectId(user.id),
       notes: '',
     })
 

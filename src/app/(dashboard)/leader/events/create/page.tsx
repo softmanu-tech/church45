@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 // src/app/(dashboard)/leader/events/create/page.tsx
 "use client"
 import { CreateEventForm } from "@/components/CreateEventForm"
@@ -26,3 +33,5 @@ export default function CreateEventPage() {
         </div>
     )
 }
+
+//////////////////////////////////////////////////////

@@ -1,218 +1,406 @@
-"use client"
+'use client';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { CalendarIcon, Layers, RefreshCw, Users } from "lucide-react"
-import { format } from "date-fns"
-import { motion } from "framer-motion"
-import { fadeIn } from "@/lib/motion"
-import { CreateEventForm } from "@/components/CreateEventForm"
-import { MarkAttendanceForm } from "@/components/MarkAttendanceForm"
-import { MembersTable } from "@/components/MembersTable"
-import { toast } from "sonner"
+import { motion } from 'framer-motion';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
+} from 'recharts';
 
-interface Group {
-  _id: string
-  name: string
+interface Member {
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  attendanceCount: number;
+  lastAttendanceDate: string | null;
+  rating: 'Excellent' | 'Average' | 'Poor';
 }
 
 interface Event {
-  _id: string
-  title: string
-  groupId: string
-  date: string
-  description?: string
+  _id: string;
+  name: string;
+  date: string;
 }
 
-interface Member {
-  _id: string
-  name: string
-  email: string
-  phone: string
+
+
+interface Group {
+  _id: string;
+  name: string;
+}
+
+export interface DashboardResponse {
+  group: Group;
+  members: Member[];
+  events: Event[];
+  attendanceRecords: {
+    _id: string;
+    event: string;
+    group: string;
+    date: string;
+    presentMembers: string[];
+  }[];
+}
+
+const PAGE_SIZE = 10;
+
+const ratingColors = {
+  Excellent: '#4caf50',
+  Average: '#ff9800',
+  Poor: '#f44336',
+};
+
+function LoadingSkeleton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0.3 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
+      className="w-full h-8 bg-gray-300 rounded my-2"
+    />
+  );
 }
 
 export default function LeaderDashboard() {
-  const [group, setGroup] = useState<Group | null>(null)
-  const [events, setEvents] = useState<Event[]>([])
-  const [members, setMembers] = useState<Member[]>([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState("events")
-  //const [error, setError] = useState("")
+  const searchParams = useSearchParams();
+  const userId = searchParams.get('userId');
+  const groupId = searchParams.get('groupId');
+  const [data, setData] = useState<DashboardResponse| null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch leader data from the API
-  const fetchLeaderData = async () => {
-    try {
-      setLoading(true)
-      //setError("")
+  // Filtering and pagination state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [ratingFilter, setRatingFilter] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortKey, setSortKey] = useState<'name' | 'attendanceCount' | 'lastAttendanceDate' | 'rating'>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-      const res = await fetch("/api/leader")
-      console.log("Response:", res)
+  // New filters for events and dates
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>(''); // YYYY-MM-DD
+  const [toDate, setToDate] = useState<string>(''); // YYYY-MM-DD
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to fetch leader data")
-      }
-
-      const data = await res.json()
-
-      setGroup(data.group || null)
-      setEvents(data.events || [])
-      setMembers(data.members || [])
-    } catch (error) {
-      console.error("Error fetching leader data:", error)
-      toast.error(error instanceof Error ? error.message : "Failed to fetch leader data")
-    } finally {
-      setLoading(false)
-    }
-  }
-
+  // Fetch data with all filters applied as query params
   useEffect(() => {
-    fetchLeaderData()
-  }, [])
+    if (!userId) return;
+    const  fetchData = async () => {
+      setLoading(true);
+      try {
+        console.log('Submitting:', { userId, groupId });
+        const params = new URLSearchParams();
+        params.append('userId', userId);
+        if (selectedEventId) params.append('eventId', selectedEventId);
+        if (fromDate) params.append('fromDate', fromDate);
+        if (toDate) params.append('toDate', toDate);
 
-  // Handle new event creation
-  const handleEventCreated = (newEvent: Event) => {
-    setEvents((prevEvents) => [...prevEvents, newEvent])
-  }
+        const res = await fetch(`/api/leader?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch data');
+        }
+        const json: DashboardResponse = await res.json();
+        setData(json);
+        setCurrentPage(1); // Reset page on new filter
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [userId, selectedEventId,groupId, fromDate, toDate]);
 
-  // Handle attendance marking
-  const handleAttendanceMarked = () => {
-    fetchLeaderData()
-  }
+  // The rest filtering/search/sort/pagination logic stays the same...
 
-  // Handle new member creation
-  const handleMemberCreated = () => {
-    fetchLeaderData()
-  }
+  const filteredMembers = useMemo(() => {
+    if (!data) return [];
+
+    let filtered = data.members;
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter((m) =>
+        m.name.toLowerCase().includes(term) || m.email.toLowerCase().includes(term)
+      );
+    }
+
+    if (ratingFilter) {
+      filtered = filtered.filter((m) => m.rating === ratingFilter);
+    }
+
+    return filtered;
+  }, [data, searchTerm, ratingFilter]);
+
+  const sortedMembers = useMemo(() => {
+    const sorted = [...filteredMembers];
+    sorted.sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === 'name') {
+        cmp = a.name.localeCompare(b.name);
+      } else if (sortKey === 'attendanceCount') {
+        cmp = a.attendanceCount - b.attendanceCount;
+      } else if (sortKey === 'lastAttendanceDate') {
+        cmp = (new Date(a.lastAttendanceDate ?? 0).getTime() || 0) - (new Date(b.lastAttendanceDate ?? 0).getTime() || 0);
+      } else if (sortKey === 'rating') {
+        const ratingsOrder = { Excellent: 1, Average: 2, Poor: 3 };
+        cmp = ratingsOrder[a.rating] - ratingsOrder[b.rating];
+      }
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [filteredMembers, sortKey, sortDirection]);
+
+  const paginatedMembers = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedMembers.slice(start, start + PAGE_SIZE);
+  }, [sortedMembers, currentPage]);
+
+  const ratingDistribution = useMemo(() => {
+    if (!data) return [];
+    const counts = { Excellent: 0, Average: 0, Poor: 0 };
+    data.members.forEach((m) => counts[m.rating]++);
+    return [
+      { name: 'Excellent', value: counts.Excellent },
+      { name: 'Average', value: counts.Average },
+      { name: 'Poor', value: counts.Poor },
+    ];
+  }, [data]);
+
+  const attendanceTrend = useMemo(() => {
+    if (!data) return [];
+
+    const dateMap = new Map<string, number>();
+    data.attendanceRecords.forEach((record) => {
+      const dateStr = new Date(record.date).toISOString().slice(0, 10);
+      dateMap.set(dateStr, (dateMap.get(dateStr) ?? 0) + record.presentMembers.length);
+    });
+
+    const sortedDates = [...dateMap.keys()].sort();
+
+    return sortedDates.map((date) => ({ date, attendance: dateMap.get(date)! }));
+  }, [data]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="p-4 max-w-7xl mx-auto">
+        <LoadingSkeleton />
+        <LoadingSkeleton />
+        <LoadingSkeleton />
       </div>
-    )
+    );
   }
 
-  if (!group) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">No group assigned</h2>
-          <p className="text-gray-500">Please contact the bishop to be assigned to a group.</p>
-        </div>
-      </div>
-    )
+  if (error) {
+    return <div className="p-4 text-red-600">Error: {error}</div>;
+  }
+
+  if (!data) {
+    return <div className="p-4">No data available.</div>;
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {/* Dashboard Header */}
-      <motion.div initial="hidden" animate="show" variants={fadeIn("up", "spring", 0.2, 1)}>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-2xl">Leader Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-medium">Group: {group.name}</h3>
-                <p className="text-gray-500">
-                  {members.length} members | {events.length} upcoming events
-                </p>
-              </div>
-              <button
-                onClick={fetchLeaderData}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    <div className="p-4 max-w-7xl mx-auto space-y-8">
+      <h1 className="text-3xl font-bold mb-4">{data.group.name} - Leader Dashboard</h1>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="Search members by name or email"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded flex-grow min-w-[250px]"
+        />
+
+        <select
+          value={ratingFilter ?? ''}
+          onChange={(e) => {
+            setRatingFilter(e.target.value || null);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="">Filter by rating</option>
+          <option value="Excellent">Excellent</option>
+          <option value="Average">Average</option>
+          <option value="Poor">Poor</option>
+        </select>
+
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="name">Sort by Name</option>
+          <option value="attendanceCount">Sort by Attendance</option>
+          <option value="lastAttendanceDate">Sort by Last Attendance</option>
+          <option value="rating">Sort by Rating</option>
+        </select>
+
+        <select
+          value={sortDirection}
+          onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+
+        {/* New Event Filter */}
+        <select
+          value={selectedEventId}
+          onChange={(e) => {
+            setSelectedEventId(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="">All Events</option>
+          {data.events.map((ev) => (
+            <option key={ev._id} value={ev._id}>
+              {ev.name} ({new Date(ev.date).toLocaleDateString()})
+            </option>
+          ))}
+        </select>
+
+        {/* From Date */}
+        <input
+          type="date"
+          value={fromDate}
+          onChange={(e) => {
+            setFromDate(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded"
+          max={toDate || undefined}
+          placeholder="From Date"
+        />
+
+        {/* To Date */}
+        <input
+          type="date"
+          value={toDate}
+          onChange={(e) => {
+            setToDate(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="border px-3 py-2 rounded"
+          min={fromDate || undefined}
+          placeholder="To Date"
+        />
+      </div>
+
+      {/* Members Table */}
+      <motion.table
+        layout
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="w-full border-collapse border border-blue-500 text-left"
+      >
+        <thead>
+          <tr>
+            <th className="border border-black p-2 cursor-pointer" onClick={() => {
+              setSortKey('name');
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            }}>Name</th>
+            <th className="border border-gray-300 p-2">Email</th>
+            <th className="border border-gray-300 p-2">Phone</th>
+            <th className="border border-gray-300 p-2 cursor-pointer text-right" onClick={() => {
+              setSortKey('attendanceCount');
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            }}>Attendance</th>
+            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => {
+              setSortKey('lastAttendanceDate');
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            }}>Last Attendance</th>
+            <th className="border border-gray-300 p-2 cursor-pointer" onClick={() => {
+              setSortKey('rating');
+              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+            }}>Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedMembers.map((member) => (
+            <tr key={member._id}>
+              <td className="border border-gray-300 p-2">{member.name}</td>
+              <td className="border border-gray-300 p-2">{member.email}</td>
+              <td className="border border-gray-300 p-2">{member.phone}</td>
+              <td className="border border-gray-300 p-2 text-right">{member.attendanceCount}</td>
+              <td className="border border-gray-300 p-2">
+                {member.lastAttendanceDate
+                  ? new Date(member.lastAttendanceDate).toLocaleDateString()
+                  : 'Never'}
+              </td>
+              <td className="border border-gray-300 p-2">
+                <span style={{ color: ratingColors[member.rating] }} className="font-semibold">
+                  {member.rating}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </motion.table>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-4 space-x-2">
+        {Array.from({ length: Math.ceil(sortedMembers.length / PAGE_SIZE) }).map((_, i) => (
+          <button
+            key={i}
+            className={`px-3 py-1 rounded border ${
+              currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-white text-blue-600'
+            }`}
+            onClick={() => setCurrentPage(i + 1)}
+          >
+            {i + 1}
+          </button>
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Attendance Trend</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={attendanceTrend}>
+              <XAxis dataKey="date" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="attendance" fill="#3182ce" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div>
+          <h2 className="text-xl font-semibold mb-3">Member Rating Distribution</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={ratingDistribution}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                label
               >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-      {/* Error Handling */}
-      
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="events" className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4" /> Events
-          </TabsTrigger>
-          <TabsTrigger value="attendance" className="flex items-center gap-2">
-            <Users className="h-4 w-4" /> Attendance
-          </TabsTrigger>
-          <TabsTrigger value="members" className="flex items-center gap-2">
-            <Layers className="h-4 w-4" /> Members
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Events Tab */}
-        <TabsContent value="events" className="mt-4">
-          <motion.div variants={fadeIn("up", "spring", 0.4, 1)}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Manage Events</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <CreateEventForm groupId={group._id} onEventCreated={handleEventCreated} />
-
-                <div className="mt-8">
-                  <h3 className="text-lg font-medium mb-4">Upcoming Events</h3>
-                  {events.length > 0 ? (
-                    <div className="space-y-4">
-                      {events.map((event) => (
-                        <div key={event._id} className="border rounded-lg p-4">
-                          <h4 className="font-medium">{event.title}</h4>
-                          <p className="text-gray-500">{format(new Date(event.date), "MMM dd, yyyy 'at' h:mm a")}</p>
-                          <p className="mt-2">{event.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No upcoming events</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* Attendance Tab */}
-        <TabsContent value="attendance" className="mt-4">
-          <motion.div variants={fadeIn("up", "spring", 0.6, 1)}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Mark Attendance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MarkAttendanceForm
-                  groupId={group._id}
-                  members={members}
-                  onAttendanceMarked={handleAttendanceMarked}
-                  currentUserId={group._id}
-                />
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-
-        {/* Members Tab */}
-        <TabsContent value="members" className="mt-4">
-          <motion.div variants={fadeIn("up", "spring", 0.8, 1)}>
-            <Card>
-              <CardHeader>
-                <CardTitle>Group Members</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <MembersTable members={members} groupId={group._id} onMemberAdded={handleMemberCreated} />
-              </CardContent>
-            </Card>
-          </motion.div>
-        </TabsContent>
-      </Tabs>
+                {ratingDistribution.map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={ratingColors[entry.name as keyof typeof ratingColors]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-// app/api/leader/dashboard/route.ts
+// Updated: app/api/leader/dashboard/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
-import  { IGroup } from '@/lib/models/Group';
+import { IGroup } from '@/lib/models/Group';
 import Event, { IEvent } from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
@@ -44,7 +44,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
     }
 
-    // Attendance filter
     const attendanceFilter: FilterQuery<IAttendance> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
@@ -57,7 +56,6 @@ export async function GET(request: Request) {
 
     const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
 
-    // Event filter
     const eventFilter: FilterQuery<IEvent> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       eventFilter._id = new mongoose.Types.ObjectId(eventId);
@@ -65,7 +63,6 @@ export async function GET(request: Request) {
 
     const events = await Event.find(eventFilter).lean();
 
-    // Fetch group members
     const rawMembers = await User.find({
       group: leader.group._id,
       role: 'member',
@@ -73,22 +70,12 @@ export async function GET(request: Request) {
       .select('name email phone')
       .lean<IUser[]>();
 
-    // Filter out members missing phone (to match expected type)
     const members: Member[] = rawMembers
       .filter((m) => typeof m.phone === 'string')
-      .map((m) => ({
-        _id: m._id,
-        name: m.name,
-        email: m.email,
-        phone: m.phone,
-      }));
+      .map((m) => ({ _id: m._id, name: m.name, email: m.email, phone: m.phone }));
 
-    // Track attendance per member
     const memberAttendanceMap = new Map<string, { count: number; lastDate: Date | null }>();
-
-    members.forEach((m) => {
-      memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null });
-    });
+    members.forEach((m) => memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null }));
 
     attendanceRecords.forEach((record: IAttendance) => {
       record.presentMembers.forEach((memberId: mongoose.Types.ObjectId) => {
@@ -99,24 +86,19 @@ export async function GET(request: Request) {
           if (!data.lastDate || record.date > data.lastDate) {
             data.lastDate = record.date;
           }
-          memberAttendanceMap.set(idStr, data);
         }
       });
     });
 
     const enhancedMembers: EnhancedMember[] = members.map((m) => {
-      const attendanceData = memberAttendanceMap.get(m._id.toString())!;
+      const data = memberAttendanceMap.get(m._id.toString())!;
       const rating =
-        attendanceData.count > 10
-          ? 'Excellent'
-          : attendanceData.count > 5
-          ? 'Average'
-          : 'Poor';
+        data.count > 10 ? 'Excellent' : data.count > 5 ? 'Average' : 'Poor';
 
       return {
         ...m,
-        attendanceCount: attendanceData.count,
-        lastAttendanceDate: attendanceData.lastDate,
+        attendanceCount: data.count,
+        lastAttendanceDate: data.lastDate,
         rating,
       };
     });
