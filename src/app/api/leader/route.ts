@@ -116,6 +116,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Error fetching leader dashboard data:', error);
-    return NextResponse.json({ error, 'Failed to fetch data' }, { status: 500 });
+    return NextResponse.json({ 'Failed to fetch data':error,  }, { status: 500 });
   }
 }
