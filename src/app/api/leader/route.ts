@@ -5,7 +5,7 @@ import { User, IUser } from '@/lib/models/User';
 import Group, { IGroup } from '@/lib/models/Group';
 import Event from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
-import mongoose from 'mongoose';
+import mongoose, { FilterQuery } from 'mongoose';
 
 interface Member {
   _id: mongoose.Types.ObjectId;
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     // Attendance filter
-    const attendanceFilter: Filter<string, any> = { group: leader.group._id };
+    const attendanceFilter: FilterQuery<IAttendance> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
     }
