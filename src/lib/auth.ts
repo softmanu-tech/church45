@@ -1,96 +1,57 @@
-// lib/auth.ts
-import NextAuth, { type NextAuthOptions, type User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { User } from "@/lib/models/User";
+import dbConnect from "@/lib/dbConnect";
 import bcrypt from "bcryptjs";
-import dbConnect from "./dbConnect";
-import { User } from "./models/User";
 
-// Extend NextAuth User type with your custom properties
-interface IUser extends NextAuthUser {
-  id: string;
-  role?: string;
-  group?: string;
-}
-
-// Extend NextAuth Session to include custom user fields
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      name?: string;
-      email?: string;
-      role?: string;
-      group?: string;
-    };
-  }
-}
-
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials): Promise<IUser | null> {
+      async authorize(credentials) {
         await dbConnect();
-
-        if (!credentials?.email || !credentials.password) {
-          throw new Error("Email and password are required");
-        }
-
         const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          throw new Error("No user found with the given email");
+
+        if (!user || user.role !== "leader") {
+          throw new Error("Leader not found or invalid role");
         }
 
-        // Compare hashed password
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) {
-          throw new Error("Invalid password");
+          throw new Error("Invalid credentials");
         }
 
         return {
           id: user._id.toString(),
-          name: user.name,
           email: user.email,
+          name: user.name,
           role: user.role,
-          group: user.group?.toString(),
         };
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      // When user signs in, attach custom props to JWT token
-      if (user) {
-        token.id = (user as IUser).id;
-        token.role = (user as IUser).role;
-        token.group = (user as IUser).group;
-      }
-      // Uncomment for debugging:
-      // console.log("JWT Callback:", token);
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.group = token.group as string;
-      }
-      // Uncomment for debugging:
-      // console.log("Session Callback:", session);
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
   },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+  },
 };
-
-export default NextAuth(authOptions);
