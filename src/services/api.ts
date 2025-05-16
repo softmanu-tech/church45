@@ -11,3 +11,10 @@ attendanceRecords.forEach((record: IAttendance) => {
     // ...
   });
 });
+
+const attendanceFilter: any = { group: leader.group._id };
+attendanceRecords.forEach((record) => {
+  record.presentMembers?.forEach((memberId) => {
+    // ...
+  });
+});
