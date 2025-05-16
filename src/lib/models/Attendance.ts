@@ -3,19 +3,21 @@ import mongoose, { Schema, Document, Model, models } from 'mongoose';
 
 // TypeScript interface for the Attendance document
 export interface IAttendance extends Document {
-    event: mongoose.Types.ObjectId;
+    event?: mongoose.Types.ObjectId;
     group: mongoose.Types.ObjectId;
     date: Date;
     count?: number;
     presentMembers: mongoose.Types.ObjectId[];
     absentMembers: mongoose.Types.ObjectId[];
     recordedBy: mongoose.Types.ObjectId;
+    updatedBy: mongoose.Types.ObjectId;
     notes?: string;
     createdAt: Date;
     updatedAt: Date;
-    presentCount?: number;
-    absentCount?: number;
+    presentCount: number;
+    absentCount: number;
     getAttendancePercentage?: () => number;
+    _id: mongoose.Types.ObjectId;
 }
 
 // Mongoose schema definition
@@ -24,7 +26,7 @@ const AttendanceSchema: Schema = new Schema(
         event: {
             type: Schema.Types.ObjectId,
             ref: 'Event',
-            required: [true, 'Event reference is required'],
+            required: false,
         },
         group: {
             type: Schema.Types.ObjectId,
@@ -50,6 +52,11 @@ const AttendanceSchema: Schema = new Schema(
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: [true, 'Recorder information is required'],
+        },
+        updatedBy: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: [true, 'Updater information is required'],
         },
         notes: {
             type: String,
