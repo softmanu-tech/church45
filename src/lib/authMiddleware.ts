@@ -1,36 +1,35 @@
 // lib/authMiddleware.ts
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
-import { User } from "./models/User";
-import dbConnect from "./dbConnect";
 
 export async function requireSessionAndRole(
   req: NextRequest | Request,
   requiredRole: string
-): Promise<{ user: { _id: string; role: string; email: string } }> {
+): Promise<{
+  user: { id: string; role: string; email: string };
+}> {
   const token = await getToken({ req: req as NextRequest });
 
-  if (!token || !token.email) {
-    throw new Error("Unauthorized: Missing token or email");
+  if (!token) {
+    console.error("❌ No token found.");
+    throw new Error("Unauthorized: No session token");
   }
 
-  await dbConnect();
+  console.log("🔑 Token contents:", token);
 
-  const user = await User.findOne({ email: token.email });
-
-  if (!user) {
-    throw new Error("User not found");
+  if (!token.email || !token.id || !token.role) {
+    throw new Error("Unauthorized: Missing token fields");
   }
 
-  if (user.role !== requiredRole) {
-    throw new Error("Forbidden: Insufficient role");
+  if (token.role !== requiredRole) {
+    throw new Error(`Forbidden: Required role '${requiredRole}', but got '${token.role}'`);
   }
 
   return {
     user: {
-      _id: user._id.toString(),
-      role: user.role,
-      email: user.email,
+      id: token.id as string,
+      role: token.role as string,
+      email: token.email as string,
     },
   };
 }
