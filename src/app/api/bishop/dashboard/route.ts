@@ -10,9 +10,7 @@ import { requireSessionAndRole } from '@/lib/authMiddleware';
 
 export async function GET(request: Request) {
   const roleCheck = await requireSessionAndRole(request, "bishop");
-  if (!roleCheck) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!roleCheck) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     await dbConnect();
@@ -21,8 +19,7 @@ export async function GET(request: Request) {
     const from = url.searchParams.get("from");
     const to = url.searchParams.get("to");
 
-    // Define date filter for attendance records
-    let dateFilter: Record<string, any> = {};
+    let dateFilter = {};
     if (from || to) {
       dateFilter = {
         date: {
@@ -32,7 +29,7 @@ export async function GET(request: Request) {
       };
     }
 
-    // Fetch basic global stats
+    // Basic global stats
     const [leadersCount, groupsCount, membersCount, attendanceRecords] = await Promise.all([
       User.countDocuments({ role: 'leader' }),
       Group.countDocuments(),
@@ -40,16 +37,15 @@ export async function GET(request: Request) {
       Attendance.find(dateFilter).lean(),
     ]);
 
-    // Calculate total attendance
     const totalAttendance = attendanceRecords.reduce(
       (sum, record) => sum + (record.presentMembers?.length || 0),
       0
     );
 
-    // Fetch group-level breakdown
-    const groups = await Group.find().populate('leader', 'name email').lean();
+    // Group-level breakdown
+    const groups = await Group.find().populate('leader', 'name', 'email');
     const detailedStats = await Promise.all(
-      groups.map(async (group: any) => {
+      groups.map(async (group) => {
         const [memberCount, eventCount, attendanceCount] = await Promise.all([
           User.countDocuments({ group: group._id, role: 'member' }),
           Event.countDocuments({ group: group._id }),
@@ -68,7 +64,6 @@ export async function GET(request: Request) {
       })
     );
 
-    // Return the response
     return NextResponse.json({
       stats: {
         totalLeaders: leadersCount,
