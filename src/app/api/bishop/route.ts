@@ -41,6 +41,25 @@ export async function GET(req: NextRequest) {
 
     // Group-level breakdown
     const groups = await Group.find().populate("leader", "name email");
+    const detailedStats = await Promise.all(
+      groups.map(async (group) => {
+        const [memberCount, eventCount, attendanceCount] = await Promise.all([
+          User.countDocuments({ group: group._id, role: "member" }),
+          Event.countDocuments({ group: group._id }),
+          Attendance.countDocuments({ group: group._id }),
+        ]);
+
+        return {
+          groupId: group._id.toString(),
+          groupName: group.name,
+          leaderName: group.leader?.name || "Unassigned",
+          leaderEmail: group.leader?.email || "N/A",
+          memberCount,
+          eventCount,
+          attendanceCount,
+        };
+      })
+    );
 
     return NextResponse.json({
       stats: {
