@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     // Attendance filter
-    const attendanceFilter: Record<string, any> = { group: leader.group._id };
+    const attendanceFilter: Filter<string, any> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
     }
