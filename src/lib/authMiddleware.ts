@@ -8,7 +8,7 @@ if (!JWT_SECRET) throw new Error("JWT_SECRET not set in environment");
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 
-export default function requireSessionAndRole(
+export async function requireSessionAndRole(
   req: NextRequest | Request,
   requiredRole: string
 ): Promise<{
