@@ -10,6 +10,7 @@ export async function requireSessionAndRole(
   if (!token || token.role !== requiredRole) {
     return null;
   }
+  console.log("Decoded Token:", token);
 
   return {
     session: {
