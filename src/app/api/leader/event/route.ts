@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRole } from "@/lib/authMiddleware";
-import { Event } from "@/lib/models/Event";
+import  Event  from "@/lib/models/Event";
 import { User } from "@/lib/models/User";
 
 export async function POST(req: NextRequest) {
