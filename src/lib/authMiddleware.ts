@@ -12,12 +12,14 @@ export async function requireSessionAndRole(
 ): Promise<{
   user: { id: string; role: string; email: string };
 }> {
-  const cookieHeader =
-    req instanceof Request ? req.headers.get("cookie") : req.headers.get("cookie");
+  // Correctly extract the cookie header
+  const headers = (req as Request).headers;
+  const cookieHeader = headers.get("cookie");
 
+  // Find the auth_token cookie
   const token = cookieHeader
     ?.split(";")
-    .find((cookie : string) => cookie.trim().startsWith("auth_token="))
+    .find((cookie) => cookie.trim().startsWith("auth_token="))
     ?.split("=")[1];
 
   console.log("🔑 Token from cookie:", token);
