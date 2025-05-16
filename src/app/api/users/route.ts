@@ -1,4 +1,4 @@
-import connectionToDatabase from "@/lib/mongodb";
+import dbC from "@/lib/mongodb";
 
 import {User} from "@/lib/models/User";
 
