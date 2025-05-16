@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
 
     // Event filter
-    const eventFilter: Record<string, any> = { group: leader.group._id };
+    const eventFilter: FilterQuery<> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       eventFilter._id = new mongoose.Types.ObjectId(eventId);
     }
