@@ -1,35 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
-import { requireSessionAndRole } from "@/lib/authMiddleware";
-import  Event  from "@/lib/models/Event";
-import { User } from "@/lib/models/User";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
 
-export async function POST(req: NextRequest) {
-  const auth = await requireSessionAndRole(req, "leader");
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+const token = await new SignJWT({ id: user._id, role: user.role, email: user.email })
+  .setProtectedHeader({ alg: "HS256" })
+  .setExpirationTime("2h")
+  .sign(secret);
 
-  const { title, description, date } = await req.json();
-
-  try {
-    await dbConnect();
-
-    const leader = await User.findById(auth.session.user.id).populate("group");
-    if (!leader || !leader.group) {
-      return NextResponse.json({ error: "Group not found" }, { status: 404 });
-    }
-
-    const event = new Event({
-      title,
-      description,
-      date: new Date(date),
-      group: leader.group._id,
-    });
-
-    await event.save();
-
-    return NextResponse.json({ message: "Event created successfully" });
-  } catch (error) {
-    console.error("Error creating event:", error);
-    return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
-  }
-}
+cookies().set("auth_token", token, {
+  httpOnly: true,
+  path: "/",
+  secure: process.env.NODE_ENV === "production",
+});
