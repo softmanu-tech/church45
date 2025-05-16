@@ -1,50 +1,111 @@
-// app/api/leader/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/dbConnect";
-import { requireSessionAndRole } from "@/lib/authMiddleware";
-import { User, type IUser } from "@/lib/models/User";
-import  Event,{type IEvent}   from "@/lib/models/Event";
+// app/api/leader/dashboard/route.ts
+import { NextResponse } from 'next/server';
+import dbConnect from '@/lib/dbConnect';
+import { User } from '@/lib/models/User';
+import Group from '@/lib/models/Group';
+import Event from '@/lib/models/Event';
+import Attendance from '@/lib/models/Attendance'; // assuming attendance model exists
+import mongoose from 'mongoose';
 
-export async function GET(req: NextRequest) {
-  const auth = await requireSessionAndRole(req, "leader");
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const leaderId = auth.session.user.id;
-
+export async function GET(request: Request) {
   try {
-    await dbConnect();
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId');
+    const groupId = url.searchParams.get('groupId');
+    const eventId = url.searchParams.get('eventId');
+    const fromDate = url.searchParams.get('fromDate');
+    const toDate = url.searchParams.get('toDate');
 
-    const leader = await User.findById(leaderId).populate("group");
-    if (!leader || !leader.group) {
-      return NextResponse.json({ group: null, events: [], members: [] });
+    if (!userId) {
+      return NextResponse.json({ error: 'Missing userId' }, { status: 400 });
     }
 
-    const events: IEvent[] = await Event.find({ group: leader.group._id }).sort({ date: 1 }).lean();
-    const members = await User.find({ group: leader.group._id, role: "member" })
-      .select("name email phone")
-      .lean<IUser[]>();
+    await dbConnect();
+
+    const leader = await User.findById(userId).populate('group');
+    if (!leader || leader.role !== 'leader' || !leader.group) {
+      return NextResponse.json({ error: 'Leader or group not found' }, { status: 404 });
+    }
+
+    // Validate group filter - only allow leader's own group or no filter
+    if (groupId && groupId !== leader.group._id.toString()) {
+      return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
+    }
+
+    // Build attendance filter
+    const attendanceFilter: any = { group: leader.group._id };
+    if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
+      attendanceFilter.event = eventId;
+    }
+    if (fromDate || toDate) {
+      attendanceFilter.date = {};
+      if (fromDate) attendanceFilter.date.$gte = new Date(fromDate);
+      if (toDate) attendanceFilter.date.$lte = new Date(toDate);
+    }
+
+    // Fetch attendance records for the filters
+    const attendanceRecords = await Attendance.find(attendanceFilter).lean();
+
+    // Fetch events for the group (optionally filtered)
+    const eventFilter: any = { group: leader.group._id };
+    if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
+      eventFilter._id = eventId;
+    }
+    const events = await Event.find(eventFilter).lean();
+
+    // Fetch members of the group
+    const members = await User.find({ group: leader.group._id, role: 'member' })
+      .select('name email phone')
+      .lean();
+
+    // Analyze attendance per member, last attendance date, and rating
+    const memberAttendanceMap = new Map<string, { count: number; lastDate: Date | null }>();
+
+    members.forEach((m) => {
+      memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null });
+    });
+
+    attendanceRecords.forEach((record) => {
+      record.presentMembers?.forEach((memberId: mongoose.Types.ObjectId) => {
+        const idStr = memberId.toString();
+        if (memberAttendanceMap.has(idStr)) {
+          const data = memberAttendanceMap.get(idStr)!;
+          data.count += 1;
+          if (!data.lastDate || record.date > data.lastDate) {
+            data.lastDate = record.date;
+          }
+          memberAttendanceMap.set(idStr, data);
+        }
+      });
+    });
+
+    const enhancedMembers = members.map((m) => {
+      const attendanceData = memberAttendanceMap.get(m._id.toString())!;
+      // Simple rating logic
+      const rating =
+        attendanceData.count > 10 ? 'Excellent' :
+        attendanceData.count > 5 ? 'Average' :
+        'Poor';
+
+      return {
+        ...m,
+        attendanceCount: attendanceData.count,
+        lastAttendanceDate: attendanceData.lastDate,
+        rating,
+      };
+    });
 
     return NextResponse.json({
       group: {
         _id: leader.group._id.toString(),
         name: leader.group.name,
       },
-      events : events.map((event: IEvent) => ({
-        _id: event._id.toString(),
-        title: event.title,
-        date: event.date.toISOString(),
-        description: event.description,
-        groupId: leader.group._id.toString(),
-      })),
-      members: members.map((member) => ({
-        _id: member._id.toString(),
-        name: member.name,
-        email: member.email,
-        phone: member.phone,
-      })),
+      events,
+      members: enhancedMembers,
+      attendanceRecords,
     });
   } catch (error) {
-    console.error("Error fetching leader data:", error);
-    return NextResponse.json({ error: "Failed to fetch leader data" }, { status: 500 });
+    console.error('Error fetching leader dashboard data:', error);
+    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }
