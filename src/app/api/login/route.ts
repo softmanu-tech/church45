@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import bcryptjs from 'bcryptjs';
 import dbConnect from '@/lib/dbConnect';
-import { cookies } from "next/headers";
 
 import { User } from '@/lib/models/User';
 
