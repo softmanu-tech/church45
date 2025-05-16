@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
 import { IGroup } from '@/lib/models/Group';
-import Event, { IEvent } from '@/lib/models/Event';
+import Event from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
 import { requireSessionAndRole } from '@/lib/authMiddleware';
@@ -25,8 +25,13 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // 🔐 Securely get logged-in user
-    const { user } = await requireSessionAndRole(request, 'leader');
+    const session = await requireSessionAndRole(request, 'leader');
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { user } = session;
+    const leaderId = new mongoose.Types.ObjectId(user.id);
 
     const url = new URL(request.url);
     const groupId = url.searchParams.get('groupId');
@@ -34,45 +39,37 @@ export async function GET(request: Request) {
     const fromDate = url.searchParams.get('fromDate');
     const toDate = url.searchParams.get('toDate');
 
-    // ✅ Lookup leader and group from DB
-    const leader = await User.findById(user._id).populate<{ group: IGroup }>('group');
+    const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
     if (!leader || !leader.group) {
       return NextResponse.json({ error: 'Leader or group not found' }, { status: 404 });
     }
 
-    if (groupId && groupId !== leader.group._id.toString()) {
+    const leaderGroupId = leader.group._id.toString();
+
+    if (groupId && groupId !== leaderGroupId) {
       return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
     }
 
-    // 📅 Attendance filter
+    // Attendance filter
     const attendanceFilter: FilterQuery<IAttendance> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
     }
+
     if (fromDate || toDate) {
-      attendanceFilter.date = {};
-      if (fromDate) attendanceFilter.date.$gte = new Date(fromDate);
-      if (toDate) attendanceFilter.date.$lte = new Date(toDate);
+      const dateFilter: Record<string, Date> = {};
+      if (fromDate) dateFilter.$gte = new Date(fromDate);
+      if (toDate) dateFilter.$lte = new Date(toDate);
+      attendanceFilter.date = dateFilter;
     }
 
-    const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
+    const [attendanceRecords, events, rawMembers] = await Promise.all([
+      Attendance.find(attendanceFilter).lean<IAttendance[]>(),
+      Event.find({ group: leader.group._id }).lean(),
+      User.find({ group: leader.group._id, role: 'member' }).select('name email phone').lean<IUser[]>()
+    ]);
 
-    // 🗓 Event filter
-    const eventFilter: FilterQuery<IEvent> = { group: leader.group._id };
-    if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
-      eventFilter._id = new mongoose.Types.ObjectId(eventId);
-    }
-
-    const events = await Event.find(eventFilter).lean();
-
-    // 👥 Members
-    const rawMembers = await User.find({
-      group: leader.group._id,
-      role: 'member',
-    })
-      .select('name email phone')
-      .lean<IUser[]>();
-
+    // Member data processing
     const members: Member[] = rawMembers.map((m) => ({
       _id: m._id,
       name: m.name,
@@ -80,15 +77,14 @@ export async function GET(request: Request) {
       phone: m.phone,
     }));
 
-    // 📊 Attendance stats
     const memberAttendanceMap = new Map<string, { count: number; lastDate: Date | null }>();
     members.forEach((m) => memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null }));
 
-    attendanceRecords.forEach((record: IAttendance) => {
-      record.presentMembers.forEach((memberId: mongoose.Types.ObjectId) => {
+    attendanceRecords.forEach((record) => {
+      record.presentMembers.forEach((memberId) => {
         const idStr = memberId.toString();
-        if (memberAttendanceMap.has(idStr)) {
-          const data = memberAttendanceMap.get(idStr)!;
+        const data = memberAttendanceMap.get(idStr);
+        if (data) {
           data.count += 1;
           if (!data.lastDate || record.date > data.lastDate) {
             data.lastDate = record.date;
@@ -99,8 +95,7 @@ export async function GET(request: Request) {
 
     const enhancedMembers: EnhancedMember[] = members.map((m) => {
       const data = memberAttendanceMap.get(m._id.toString())!;
-      const rating =
-        data.count > 10 ? 'Excellent' : data.count > 5 ? 'Average' : 'Poor';
+      const rating = data.count > 10 ? 'Excellent' : data.count > 5 ? 'Average' : 'Poor';
 
       return {
         ...m,
