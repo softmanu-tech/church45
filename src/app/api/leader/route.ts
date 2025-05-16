@@ -69,11 +69,13 @@ export async function GET(request: Request) {
     const rawMembers = await User.find({
       group: leader.group._id,
       role: 'member',
-    }).select('name email phone').lean<IUser[]>();
+    })
+      .select('name email phone')
+      .lean<IUser[]>();
 
     // Filter out members missing phone (to match expected type)
     const members: Member[] = rawMembers
-      .filter((m): m is Member => typeof m.phone === 'string')
+      .filter((m) => typeof m.phone === 'string')
       .map((m) => ({
         _id: m._id,
         name: m.name,
