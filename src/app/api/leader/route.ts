@@ -1,42 +1,29 @@
-import { NextResponse } from "next/server"
-import dbConnect from "@/lib/dbConnect"
-import { type IUser, User } from "@/lib/models/User"
-import { Event, type IEvent } from "@/lib/models/Event"
+// app/api/leader/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/dbConnect";
+import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { User, type IUser } from "@/lib/models/User";
+import { Event, type IEvent } from "@/lib/models/Event";
 
-// Use request if you want to get the userId from the query (e.g. /api/leader?userId=xxx)
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const auth = await requireSessionAndRole(req, "leader");
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const leaderId = auth.session.user.id;
+
   try {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get("userId")
+    await dbConnect();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing user ID" }, { status: 400 })
+    const leader = await User.findById(leaderId).populate("group");
+    if (!leader || !leader.group) {
+      return NextResponse.json({ group: null, events: [], members: [] });
     }
 
-    await dbConnect()
-
-    // Fetch leader's group
-    const leader = await User.findById(userId).populate("group")
-    if (!leader?.group) {
-      return NextResponse.json({ group: null, events: [], members: [] })
-    }
-
-    // Ensure the user is a leader
-    if (leader.role !== "leader") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
-    // Fetch group events
-    const events = await Event.find({ group: leader.group._id })
-      .sort({ date: 1 })
-      .lean<IEvent[]>()
-
-    // Fetch group members
+    const events = await Event.find({ group: leader.group._id }).sort({ date: 1 }).lean<IEvent[]>();
     const members = await User.find({ group: leader.group._id, role: "member" })
       .select("name email phone")
-      .lean<IUser[]>()
+      .lean<IUser[]>();
 
-    // Respond with the leader's group, events, and members
     return NextResponse.json({
       group: {
         _id: leader.group._id.toString(),
@@ -55,11 +42,9 @@ export async function GET(req: Request) {
         email: member.email,
         phone: member.phone,
       })),
-    })
+    });
   } catch (error) {
-    console.error("Error fetching leader data:", error)
-    return NextResponse.json({ error: "Failed to fetch leader data" }, { status: 500 })
+    console.error("Error fetching leader data:", error);
+    return NextResponse.json({ error: "Failed to fetch leader data" }, { status: 500 });
   }
 }
-
-
