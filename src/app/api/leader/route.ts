@@ -114,8 +114,8 @@ export async function GET(request: Request) {
       members: enhancedMembers,
       attendanceRecords,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching leader dashboard data:', error);
-    return NextResponse.json({ error: error.message || 'Failed to fetch data' }, { status: 500 });
+    return NextResponse.json({ error, 'Failed to fetch data' }, { status: 500 });
   }
 }
