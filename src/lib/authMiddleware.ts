@@ -14,8 +14,8 @@ export async function requireSessionAndRole(
 ): Promise<{
   user: { id: string; role: string; email: string };
 }> {
-  const cookieStore = cookies();
-  const token = cookieStore.get("auth_token")?.value;
+  // Correct usage — cookies() is NOT async
+  const token = cookies().get("auth_token")?.value;
 
   console.log("🔑 Token from cookie:", token);
 
