@@ -1,4 +1,4 @@
-import dbC from "@/lib/mongodb";
+import dbConnect from "@/lib/dbConnect";
 
 import {User} from "@/lib/models/User";
 
@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 
 export async  function  POST(req: Request) {
     try{
-        await connectionToDatabase();
+        await dbConnect();
         const {email, password} = await req.json()
 
         const user = await User.findOne({ email });
