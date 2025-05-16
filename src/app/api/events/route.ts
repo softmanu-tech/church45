@@ -1,6 +1,6 @@
 // src/app/api/events/route.ts
 import { NextResponse } from 'next/server'
-import { Event } from '@/lib/models/Event'
+import  Event  from '@/lib/models/Event'
 import  Group  from '@/lib/models/Group'
 import { User } from '@/lib/models/User'
 import dbConnect from '@/lib/dbConnect'
