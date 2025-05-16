@@ -17,7 +17,7 @@ export async function requireSessionAndRole(
 
   const token = cookieHeader
     ?.split(";")
-    .find((cookie :) => cookie.trim().startsWith("auth_token="))
+    .find((cookie : string) => cookie.trim().startsWith("auth_token="))
     ?.split("=")[1];
 
   console.log("🔑 Token from cookie:", token);
