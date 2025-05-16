@@ -1,19 +1,27 @@
-import { requireSessionAndRole } from "@/lib/authMiddleware";
-import { NextResponse } from "next/server";
-import { Group } from "@/lib/models/Group";
+// lib/authMiddleware.ts
+import { jwtVerify } from 'jose';
+import { cookies } from 'next/headers';
 
-export async function GET(req: Request) {
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+export async function requireSessionAndRole(request: Request, expectedRole: string) {
+  const cookieStore = cookies();
+  const token = cookieStore.get('auth_token')?.value;
+
+  if (!token) {
+    throw new Error('Unauthorized: No session token');
+  }
+
   try {
-    const { user } = await requireSessionAndRole(req, "leader");
+    const { payload } = await jwtVerify(token, secret);
 
-    if (!user._id) {
-      throw new Error("Invalid or missing userId");
+    if (payload.role !== expectedRole) {
+      throw new Error('Unauthorized: Insufficient role');
     }
 
-    const groups = await Group.find({ leader: user._id });
-
-    return NextResponse.json({ groups });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return { user: payload }; // id, email, role
+  } catch (error) {
+    console.error('JWT verification failed:', error);
+    throw new Error('Unauthorized: Invalid token');
   }
 }
