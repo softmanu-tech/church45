@@ -1,6 +1,4 @@
-// lib/authMiddleware.ts
 import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -14,8 +12,13 @@ export async function requireSessionAndRole(
 ): Promise<{
   user: { id: string; role: string; email: string };
 }> {
-  // Correct usage — cookies() is NOT async
-  const token = cookies().get("auth_token")?.value;
+  const cookieHeader =
+    req instanceof Request ? req.headers.get("cookie") : req.headers.get("cookie");
+
+  const token = cookieHeader
+    ?.split(";")
+    .find((cookie :) => cookie.trim().startsWith("auth_token="))
+    ?.split("=")[1];
 
   console.log("🔑 Token from cookie:", token);
 
