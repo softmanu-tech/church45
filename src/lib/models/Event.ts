@@ -7,6 +7,7 @@ export interface IEvent extends Document {
   title: string;
   date: Date;
   location?: string;
+  description?: string;
   group: mongoose.Types.ObjectId; // ref to Group
   attendance: mongoose.Types.ObjectId[]; // member IDs who attended
   createdBy: mongoose.Types.ObjectId | typeof User
@@ -16,10 +17,11 @@ export interface IEvent extends Document {
 
 const EventSchema: Schema<IEvent> = new Schema(
   {
-    
+
     title: { type: String, required: true },
     date: { type: Date, required: true },
     location: { type: String },
+    description: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
     attendance: [{ type: Schema.Types.ObjectId, ref: "Member" }],
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
