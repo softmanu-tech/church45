@@ -68,8 +68,9 @@ export async function GET(req: NextRequest) {
         members: membersCount,
         totalAttendance,
       },
+      groups: detailedStats,
       filter: { from, to },
-      groups: detailedStats,      
+            
     });
   } catch (error) {
     console.error("Error fetching bishop dashboard stats:", error);
