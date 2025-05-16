@@ -5,7 +5,7 @@ import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
 import Group from '@/lib/models/Group';
 import { Attendance } from '@/lib/models/Attendance';
-import { IEvent } from '@/lib/models/Event';
+import { Event } from '@/lib/models/Event';
 import { requireSessionAndRole } from '@/lib/authMiddleware';
 
 export async function GET(request: Request) {
