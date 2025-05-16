@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
 import Group, { IGroup } from '@/lib/models/Group';
-import Event from '@/lib/models/Event';
+import Event, { IEvent } from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
 
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
     const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
 
     // Event filter
-    const eventFilter: FilterQuery<> = { group: leader.group._id };
+    const eventFilter: FilterQuery<IEvent> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       eventFilter._id = new mongoose.Types.ObjectId(eventId);
     }
