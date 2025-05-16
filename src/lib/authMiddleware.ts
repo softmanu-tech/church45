@@ -9,6 +9,7 @@ export async function requireSessionAndRole(
   user: { id: string; role: string; email: string };
 }> {
   const token = await getToken({ req: req as NextRequest });
+  console.log("🔑 Token:", token);
 
   if (!token) {
     console.error("❌ No token found.");
