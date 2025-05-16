@@ -62,16 +62,16 @@ export async function GET(request: Request) {
       groups.map(async (group) => {
         const g = group as GroupWithLeader;
         const [memberCount, eventCount, attendanceCount] = await Promise.all([
-          User.countDocuments({ group: gr._id, role: "member" }),
-          Event.countDocuments({ group: group._id }),
-          Attendance.countDocuments({ group: group._id }),
+          User.countDocuments({ group: g._id, role: "member" }),
+          Event.countDocuments({ group: g._id }),
+          Attendance.countDocuments({ group: g._id }),
         ]);
 
         return {
-          groupId: group._id.toString(),
-          groupName: group.name,
-          leaderName: group.leader?.name || "Unassigned",
-          leaderEmail: group.leader?.email || "N/A",
+          groupId: g._id.toString(),
+          groupName: g.name,
+          leaderName: g.leader?.name || "Unassigned",
+          leaderEmail: g.leader?.email || "N/A",
           memberCount,
           eventCount,
           attendanceCount,
