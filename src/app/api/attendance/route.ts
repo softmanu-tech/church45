@@ -4,6 +4,7 @@ import dbConnect from '@/lib/dbConnect'
 import { Attendance, IAttendance } from '@/lib/models/Attendance'
 import Group, { IGroup } from '@/lib/models/Group'
 import { Types } from 'mongoose'
+import { requireSessionAndRole } from '@/lib/auth/requireSessionAndRole'
 
 interface AttendanceRequest {
   date: string
@@ -13,14 +14,10 @@ interface AttendanceRequest {
 
 export async function POST(request: Request) {
   try {
-    // Authenticate user
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const session = await requireSessionAndRole(['leader']) // Assuming leader role is required
 
-    // Parse and validate request body
     const { date, groupId, presentIds }: AttendanceRequest = await request.json()
+
     if (!date || !groupId || !Array.isArray(presentIds)) {
       return NextResponse.json(
         { error: 'Date, group ID, and present IDs array are required' },
@@ -28,7 +25,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Validate date format and range
     const attendanceDate = new Date(date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -47,14 +43,12 @@ export async function POST(request: Request) {
       )
     }
 
-    // Set time to midnight for consistent comparison
     attendanceDate.setHours(0, 0, 0, 0)
 
-    // Connect to the database
     await dbConnect()
 
-    // Verify group existence and user authorization
     const group = await Group.findById(groupId).exec() as (IGroup & { _id: Types.ObjectId }) | null
+
     if (!group) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
@@ -66,12 +60,10 @@ export async function POST(request: Request) {
       )
     }
 
-    // Convert presentIds to ObjectIds
     const presentObjectIds = presentIds.map(id => new Types.ObjectId(id))
-
-    // Validate present IDs against group members
     const groupMemberIds = new Set(group.members.map(memberId => memberId.toString()))
     const invalidMembers = presentIds.filter(id => !groupMemberIds.has(id))
+
     if (invalidMembers.length > 0) {
       return NextResponse.json(
         { error: `Invalid members: ${invalidMembers.join(', ')}` },
@@ -79,17 +71,13 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check for existing attendance record
     const existingAttendance = await Attendance.findOne({
       date: attendanceDate,
-      group: groupId
-    }).exec() as (IAttendance & { _id: Types.ObjectId }) | null
+      group: group._id
+    }).exec()
 
     if (existingAttendance) {
-      // Update existing attendance if found
       existingAttendance.presentMembers = presentObjectIds
-      existingAttendance.presentCount = presentObjectIds.length
-      existingAttendance.absentCount = group.members.length - presentObjectIds.length
       existingAttendance.updatedBy = new Types.ObjectId(session.user.id)
       existingAttendance.updatedAt = new Date()
 
@@ -101,49 +89,40 @@ export async function POST(request: Request) {
           id: existingAttendance._id.toString(),
           date: existingAttendance.date.toISOString().split('T')[0],
           group: group.name,
-          presentCount: existingAttendance.presentCount,
-          absentCount: existingAttendance.absentCount,
+          presentCount: existingAttendance.presentMembers.length,
+          absentCount: group.members.length - presentObjectIds.length,
           updated: true
         }
       })
     }
 
-    // Create new attendance record
     const attendance = new Attendance({
       date: attendanceDate,
-      group: new Types.ObjectId(groupId),
-      presentCount: presentObjectIds.length,
-      absentCount: group.members.length - presentObjectIds.length,
+      group: group._id,
       presentMembers: presentObjectIds,
+      absentMembers: group.members.filter(memberId => !presentIds.includes(memberId.toString())),
       recordedBy: new Types.ObjectId(session.user.id),
       updatedBy: new Types.ObjectId(session.user.id),
-      updatedAt: new Date()
-    }) as IAttendance & { _id: Types.ObjectId }
+      notes: '',
+    })
 
     await attendance.save()
 
-    // Convert the document to a plain object to include virtuals
-    const attendanceObject = attendance.toObject()
-
-    // Respond with success
     return NextResponse.json(
       {
         message: 'Attendance recorded successfully',
         data: {
-          id: attendanceObject._id.toString(),
+          id: attendance._id.toString(),
           date: attendance.date.toISOString().split('T')[0],
           group: group.name,
-          presentCount: attendance.presentCount,
-          absentCount: attendance.absentCount
+          presentCount: attendance.presentMembers.length,
+          absentCount: group.members.length - presentObjectIds.length,
         }
       },
       { status: 201 }
     )
   } catch (error) {
-    console.error('Attendance recording error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    console.error('Attendance POST error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
