@@ -3,6 +3,7 @@ import { User } from "@/lib/models/User";
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IEvent extends Document {
+  _id: mongoose.Types.ObjectId;
   title: string;
   date: Date;
   location?: string;
