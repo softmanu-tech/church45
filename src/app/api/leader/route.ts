@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ group: null, events: [], members: [] });
     }
 
-    const events = await Event.find({ group: leader.group._id }).sort({ date: 1 }).lean<IEvent[]>();
+    const events: IEvent[] = await Event.find({ group: leader.group._id }).sort({ date: 1 }).lean<IEvent[]>();
     const members = await User.find({ group: leader.group._id, role: "member" })
       .select("name email phone")
       .lean<IUser[]>();
