@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 export async function requireSessionAndRole(
-  req: NextRequest,
+  req: NextRequest | Request,
   requiredRole: string
 ): Promise<{ session: { user: { id: string; role?: string; email?: string } } } | null> {
   const token = await getToken({ req });
