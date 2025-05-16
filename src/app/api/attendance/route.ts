@@ -4,7 +4,7 @@ import dbConnect from '@/lib/dbConnect'
 import { Attendance } from '@/lib/models/Attendance'
 import Group, { IGroup } from '@/lib/models/Group'
 import { Types } from 'mongoose'
-import { requireSessionAndRole } from '@/lib/auth/requireSessionAndRole'
+import { requireSessionAndRole } from "@/lib/authMiddleware";
 
 interface AttendanceRequest {
   date: string
