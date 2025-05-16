@@ -1,26 +1,22 @@
-// lib/authMiddleware.ts
-import { getToken } from "next-auth/jwt";
-import { NextRequest } from "next/server";
-
 export async function requireSessionAndRole(
-  req: NextRequest | Request,
-  requiredRole: string
-): Promise<{ session: { user: { id: string; role?: string; email?: string } } } | null> {
-  const token = await getToken({ req: req as NextRequest });
+  req: Request | NextRequest,
+  requiredRole: string | string[]
+) {
+  const session = await getToken({ req });
 
-  if (!token || token.role !== requiredRole) {
-    return null;
+  if (!session?.id) {
+    throw new Error('Unauthorized');
   }
 
-  console.log("Token:", token);
+  const userRole = session.role;
 
-  return {
-    session: {
-      user: {
-        id: token.id as string,
-        role: token.role as string,
-        email: token.email as string,
-      },
-    },
-  };
+  const isAuthorized = Array.isArray(requiredRole)
+    ? requiredRole.includes(userRole)
+    : userRole === requiredRole;
+
+  if (!isAuthorized) {
+    throw new Error('Forbidden');
+  }
+
+  return { session: { user: { id: session.id, role: userRole, email: session.email } } };
 }
