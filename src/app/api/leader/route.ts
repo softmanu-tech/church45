@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
         _id: leader.group._id.toString(),
         name: leader.group.name,
       },
-      events: events.map((event) => ({
+      events : events.map((event: IEvent) => ({
         _id: event._id.toString(),
         title: event.title,
         date: event.date.toISOString(),
