@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     );
 
     // Group-level breakdown
-    const groups = await Group.find().populate('leader', 'name email');
+    const groups = await Group.find().populate('leader', 'name', email');
     const detailedStats = await Promise.all(
       groups.map(async (group) => {
         const [memberCount, eventCount, attendanceCount] = await Promise.all([
