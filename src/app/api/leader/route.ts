@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRole } from "@/lib/authMiddleware";
 import { User, type IUser } from "@/lib/models/User";
-import { Event, type IEvent } from "@/lib/models/Event";
+import { Event,{} type IEvent } from "@/lib/models/Event";
 
 export async function GET(req: NextRequest) {
   const auth = await requireSessionAndRole(req, "leader");
