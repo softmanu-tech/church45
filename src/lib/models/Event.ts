@@ -16,6 +16,7 @@ export interface IEvent extends Document {
 
 const EventSchema: Schema<IEvent> = new Schema(
   {
+    
     title: { type: String, required: true },
     date: { type: Date, required: true },
     location: { type: String },
