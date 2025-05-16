@@ -9,3 +9,11 @@ const formattedEvents = events.map((event) => ({
   description: event.description,
   groupId: leader.group._id.toString(),
 }));
+events.map((event: IEvent) => ({
+    _id: event._id.toString(),
+    title: event.title,
+    date: event.date.toISOString(),
+    description: event.description,
+    groupId: leader.group._id.toString(),
+  }))
+  
