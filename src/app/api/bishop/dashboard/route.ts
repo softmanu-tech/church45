@@ -1,16 +1,28 @@
-// app/api/bishop/dashboard/route.ts
+import { NextResponse } from "next/server";
+import dbConnect from "@/lib/dbConnect";
+import { User } from "@/lib/models/User";
+import Group from "@/lib/models/Group";
+import { Attendance } from "@/lib/models/Attendance";
+import Event from "@/lib/models/Event"; // Assuming default export here
+import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { Types } from "mongoose";
 
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import { User } from '@/lib/models/User';
-import Group from '@/lib/models/Group';
-import { Attendance } from '@/lib/models/Attendance';
-import { Event } from '@/lib/models/Event';
-import { requireSessionAndRole } from '@/lib/authMiddleware';
+interface Leader {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+}
+
+interface GroupWithLeader {
+  _id: Types.ObjectId;
+  name: string;
+  leader?: Leader | null;
+}
 
 export async function GET(request: Request) {
   const roleCheck = await requireSessionAndRole(request, "bishop");
-  if (!roleCheck) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!roleCheck)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
     await dbConnect();
@@ -29,25 +41,27 @@ export async function GET(request: Request) {
       };
     }
 
-    // Basic global stats
-    const [leadersCount, groupsCount, membersCount, attendanceRecords] = await Promise.all([
-      User.countDocuments({ role: 'leader' }),
-      Group.countDocuments(),
-      User.countDocuments({ role: 'member' }),
-      Attendance.find(dateFilter).lean(),
-    ]);
+    const [leadersCount, groupsCount, membersCount, attendanceRecords] =
+      await Promise.all([
+        User.countDocuments({ role: "leader" }),
+        Group.countDocuments(),
+        User.countDocuments({ role: "member" }),
+        Attendance.find(dateFilter).lean(),
+      ]);
 
     const totalAttendance = attendanceRecords.reduce(
       (sum, record) => sum + (record.presentMembers?.length || 0),
       0
     );
 
-    // Group-level breakdown
-    const groups = await Group.find().populate('leader', 'name', 'email');
+    const groups = await Group.find()
+      .populate<{ leader: Leader }>("leader", "name email")
+      .lean();
+
     const detailedStats = await Promise.all(
-      groups.map(async (group) => {
+      groups.map(async (group: GroupWithLeader) => {
         const [memberCount, eventCount, attendanceCount] = await Promise.all([
-          User.countDocuments({ group: group._id, role: 'member' }),
+          User.countDocuments({ group: group._id, role: "member" }),
           Event.countDocuments({ group: group._id }),
           Attendance.countDocuments({ group: group._id }),
         ]);
@@ -55,8 +69,8 @@ export async function GET(request: Request) {
         return {
           groupId: group._id.toString(),
           groupName: group.name,
-          leaderName: group.leader?.name || 'Unassigned',
-          leaderEmail: group.leader?.email || 'N/A',
+          leaderName: group.leader?.name || "Unassigned",
+          leaderEmail: group.leader?.email || "N/A",
           memberCount,
           eventCount,
           attendanceCount,
@@ -75,9 +89,9 @@ export async function GET(request: Request) {
       filter: { from, to },
     });
   } catch (error) {
-    console.error('Error fetching bishop dashboard stats:', error);
+    console.error("Error fetching bishop dashboard stats:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch dashboard stats' },
+      { error: "Failed to fetch dashboard stats" },
       { status: 500 }
     );
   }
