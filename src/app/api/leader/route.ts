@@ -1,22 +1,20 @@
+// app/api/leader/dashboard/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
 import Group, { IGroup } from '@/lib/models/Group';
-import Event, { IEvent } from '@/lib/models/Event';
-import Attendance, { IAttendance } from '@/lib/models/Attendance';
-import mongoose, { Types } from 'mongoose';
+import Event from '@/lib/models/Event';
+import { Attendance, IAttendance } from '@/lib/models/Attendance';
+import mongoose from 'mongoose';
 
-// Types
-interface AttendanceSummary {
-  count: number;
-  lastDate: Date | null;
-}
-
-interface EnhancedMember {
-  _id: string;
+interface Member {
+  _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   phone: string;
+}
+
+interface EnhancedMember extends Member {
   attendanceCount: number;
   lastAttendanceDate: Date | null;
   rating: 'Excellent' | 'Average' | 'Poor';
@@ -24,8 +22,6 @@ interface EnhancedMember {
 
 export async function GET(request: Request) {
   try {
-    await dbConnect();
-
     const url = new URL(request.url);
     const userId = url.searchParams.get('userId');
     const groupId = url.searchParams.get('groupId');
@@ -34,8 +30,10 @@ export async function GET(request: Request) {
     const toDate = url.searchParams.get('toDate');
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({ error: 'Missing or invalid userId' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or missing userId' }, { status: 400 });
     }
+
+    await dbConnect();
 
     const leader = await User.findById(userId).populate<{ group: IGroup }>('group');
     if (!leader || leader.role !== 'leader' || !leader.group) {
@@ -46,40 +44,52 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
     }
 
-    const attendanceFilter: Partial<Record<keyof IAttendance, unknown>> = {
-      group: leader.group._id,
-    };
-
+    // Attendance filter
+    const attendanceFilter: Record<string, any> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
     }
-
     if (fromDate || toDate) {
       attendanceFilter.date = {};
-      if (fromDate) (attendanceFilter.date as any).$gte = new Date(fromDate);
-      if (toDate) (attendanceFilter.date as any).$lte = new Date(toDate);
+      if (fromDate) attendanceFilter.date.$gte = new Date(fromDate);
+      if (toDate) attendanceFilter.date.$lte = new Date(toDate);
     }
 
-    const attendanceRecords: IAttendance[] = await Attendance.find(attendanceFilter).lean();
+    const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
 
-    const eventFilter: Partial<Record<keyof IEvent, unknown>> = { group: leader.group._id };
+    // Event filter
+    const eventFilter: Record<string, any> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       eventFilter._id = new mongoose.Types.ObjectId(eventId);
     }
 
-    const events: IEvent[] = await Event.find(eventFilter).lean();
+    const events = await Event.find(eventFilter).lean();
 
-    const members: IUser[] = await User.find({ group: leader.group._id, role: 'member' })
-      .select('name email phone')
-      .lean();
+    // Fetch group members
+    const rawMembers = await User.find({
+      group: leader.group._id,
+      role: 'member',
+    }).select('name email phone').lean<IUser[]>();
 
-    const memberAttendanceMap = new Map<string, AttendanceSummary>();
+    // Filter out members missing phone (to match expected type)
+    const members: Member[] = rawMembers
+      .filter((m): m is Member => typeof m.phone === 'string')
+      .map((m) => ({
+        _id: m._id,
+        name: m.name,
+        email: m.email,
+        phone: m.phone,
+      }));
+
+    // Track attendance per member
+    const memberAttendanceMap = new Map<string, { count: number; lastDate: Date | null }>();
+
     members.forEach((m) => {
       memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null });
     });
 
     attendanceRecords.forEach((record: IAttendance) => {
-      record.presentMembers?.forEach((memberId: Types.ObjectId) => {
+      record.presentMembers.forEach((memberId: mongoose.Types.ObjectId) => {
         const idStr = memberId.toString();
         if (memberAttendanceMap.has(idStr)) {
           const data = memberAttendanceMap.get(idStr)!;
@@ -94,16 +104,15 @@ export async function GET(request: Request) {
 
     const enhancedMembers: EnhancedMember[] = members.map((m) => {
       const attendanceData = memberAttendanceMap.get(m._id.toString())!;
-      const rating: EnhancedMember['rating'] =
-        attendanceData.count > 10 ? 'Excellent' :
-        attendanceData.count > 5 ? 'Average' :
-        'Poor';
+      const rating =
+        attendanceData.count > 10
+          ? 'Excellent'
+          : attendanceData.count > 5
+          ? 'Average'
+          : 'Poor';
 
       return {
-        _id: m._id.toString(),
-        name: m.name,
-        email: m.email,
-        phone: m.phone ?? '', // fallback for optional field
+        ...m,
         attendanceCount: attendanceData.count,
         lastAttendanceDate: attendanceData.lastDate,
         rating,
@@ -115,21 +124,9 @@ export async function GET(request: Request) {
         _id: leader.group._id.toString(),
         name: leader.group.name,
       },
-      events: events.map((e) => ({
-        _id: e._id.toString(),
-        title: e.title,
-        date: e.date,
-        description: e.description,
-        location: e.location,
-      })),
+      events,
       members: enhancedMembers,
-      attendanceRecords: attendanceRecords.map((a) => ({
-        _id: a._id.toString(),
-        event: a.event.toString(),
-        group: a.group.toString(),
-        date: a.date,
-        presentMembers: a.presentMembers.map((id: Types.ObjectId) => id.toString()),
-      })),
+      attendanceRecords,
     });
   } catch (error) {
     console.error('Error fetching leader dashboard data:', error);
