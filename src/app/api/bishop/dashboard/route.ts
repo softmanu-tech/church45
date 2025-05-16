@@ -59,7 +59,8 @@ export async function GET(request: Request) {
       .lean();
 
     const detailedStats = await Promise.all(
-      groups.map(async (group: GroupWithLeader) => {
+      groups.map(async (group) => {
+        const g = group
         const [memberCount, eventCount, attendanceCount] = await Promise.all([
           User.countDocuments({ group: group._id, role: "member" }),
           Event.countDocuments({ group: group._id }),
