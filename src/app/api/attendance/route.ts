@@ -1,7 +1,7 @@
 // src/app/api/attendance/route.ts
 import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/dbConnect'
-import { Attendance, IAttendance } from '@/lib/models/Attendance'
+import { Attendance } from '@/lib/models/Attendance'
 import Group, { IGroup } from '@/lib/models/Group'
 import { Types } from 'mongoose'
 import { requireSessionAndRole } from '@/lib/auth/requireSessionAndRole'
