@@ -7,7 +7,7 @@ import dbConnect from "./dbConnect";
 export async function requireSessionAndRole(
   req: NextRequest | Request,
   requiredRole: string
-): Promise<{ user: Awaited<ReturnType<typeof User.findOne>> }> {
+): Promise<{ user: { _id: string; role: string; email: string } }> {
   const token = await getToken({ req: req as NextRequest });
 
   if (!token || !token.email) {
@@ -26,5 +26,11 @@ export async function requireSessionAndRole(
     throw new Error("Forbidden: Insufficient role");
   }
 
-  return { user };
+  return {
+    user: {
+      _id: user._id.toString(),
+      role: user.role,
+      email: user.email,
+    },
+  };
 }
