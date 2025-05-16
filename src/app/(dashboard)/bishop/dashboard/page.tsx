@@ -1,18 +1,44 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+interface GroupSummary {
+  groupId: string;
+  groupName: string;
+  leaderName: string;
+  memberCount: number;
+  eventCount: number;
+  attendanceCount: number;
+}
+
+interface BishopDashboardData {
+  stats: {
+    totalLeaders: number;
+    totalGroups: number;
+    totalMembers: number;
+    totalAttendance: number;
+  };
+  groups: GroupSummary[];
+}
 
 export default function BishopDashboard() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<BishopDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/bishop/dashboard");
-        const json = await res.json();
+        const json = (await res.json()) as BishopDashboardData;
         setData(json);
       } catch (err) {
         console.error("Failed to fetch bishop dashboard data", err);
@@ -24,7 +50,8 @@ export default function BishopDashboard() {
   }, []);
 
   if (loading) return <Skeleton className="w-full h-48 rounded-xl" />;
-  if (!data) return <div className="text-red-600">Failed to load dashboard data</div>;
+  if (!data)
+    return <div className="text-red-600">Failed to load dashboard data</div>;
 
   const { stats, groups } = data;
 
@@ -60,11 +87,13 @@ export default function BishopDashboard() {
       <div>
         <h3 className="text-lg font-medium mb-2">Group Summary</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {groups.map((group) => (
+          {groups.map((group: GroupSummary) => (
             <Card key={group.groupId}>
               <CardContent className="p-4">
                 <h4 className="font-semibold text-lg mb-1">{group.groupName}</h4>
-                <p className="text-sm text-gray-500">Leader: {group.leaderName}</p>
+                <p className="text-sm text-gray-500">
+                  Leader: {group.leaderName}
+                </p>
                 <div className="mt-2 text-sm">
                   <p>Members: {group.memberCount}</p>
                   <p>Events: {group.eventCount}</p>
