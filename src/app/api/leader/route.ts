@@ -7,6 +7,20 @@ import Event from '@/lib/models/Event';
 import Attendance from '@/lib/models/Attendance'; // assuming attendance model exists
 import mongoose from 'mongoose';
 
+// Create interfaces for clarity
+interface AttendanceRecord {
+  date: Date;
+  presentMembers: mongoose.Types.ObjectId[];
+}
+
+interface Member {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);

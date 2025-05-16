@@ -1,13 +1,4 @@
-// Create interfaces for clarity
-interface AttendanceRecord {
-    date: Date;
-    presentMembers: mongoose.Types.ObjectId[];
-  }
-  
-  interface Member {
-    _id: mongoose.Types.ObjectId;
-    name: string;
-    email: string;
-    phone: string;
-  }
-  
+const attendanceRecords = await Attendance.find(attendanceFilter).lean<AttendanceRecord[]>();
+const members = await User.find({ group: leader.group._id, role: 'member' })
+  .select('name email phone')
+  .lean<Member[]>();
