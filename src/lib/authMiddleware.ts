@@ -1,17 +1,23 @@
-// lib/authMiddleware.ts
-import { getServerSession } from "next-auth";
-import { authOptions } from "./auth"; // adjust if path is different
+import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 export async function requireSessionAndRole(
   req: NextRequest,
   requiredRole: string
-): Promise<{ session: Awaited<ReturnType<typeof getServerSession>> } | null> {
-  const session = await getServerSession(authOptions);
+): Promise<{ session: { user: { id: string; role?: string; email?: string } } } | null> {
+  const token = await getToken({ req });
 
-  if (!session || !session.user || session.user.role !== requiredRole) {
+  if (!token || token.role !== requiredRole) {
     return null;
   }
 
-  return { session };
+  return {
+    session: {
+      user: {
+        id: token.id as string,
+        role: token.role as string,
+        email: token.email as string,
+      },
+    },
+  };
 }
