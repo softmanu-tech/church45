@@ -17,7 +17,7 @@ interface AttendanceRequest {
 
 export async function POST(request: Request) {
   try {
-    const session = await requireSessionAndRole(request, ['leader']) // Assuming leader role is required
+    const session = await requireSessionAndRole(request, 'leader') // Assuming leader role is required
 
     const { date, groupId, presentIds }: AttendanceRequest = await request.json()
 
