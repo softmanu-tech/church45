@@ -11,7 +11,7 @@ interface Member {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
 }
 
 interface EnhancedMember extends Member {
