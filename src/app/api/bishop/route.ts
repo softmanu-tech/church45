@@ -40,7 +40,6 @@ export async function GET(req: NextRequest) {
     );
 
     // Group-level breakdown
-    const groups = await Group.find().populate("leader", "name email");
 
     return NextResponse.json({
       stats: {
