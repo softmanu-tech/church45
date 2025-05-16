@@ -1,6 +1,6 @@
 // lib/authMiddleware.ts
-import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 
 const JWT_SECRET = process.env.JWT_SECRET;
