@@ -1,4 +1,4 @@
-// Updated: app/api/leader/dashboard/route.ts
+// app/api/leader/dashboard/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
@@ -6,6 +6,7 @@ import { IGroup } from '@/lib/models/Group';
 import Event, { IEvent } from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
+import { requireSessionAndRole } from '@/lib/authMiddleware';
 
 interface Member {
   _id: mongoose.Types.ObjectId;
@@ -22,21 +23,20 @@ interface EnhancedMember extends Member {
 
 export async function GET(request: Request) {
   try {
+    await dbConnect();
+
+    // 🔐 Securely get logged-in user
+    const { user } = await requireSessionAndRole(request, 'leader');
+
     const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
     const groupId = url.searchParams.get('groupId');
     const eventId = url.searchParams.get('eventId');
     const fromDate = url.searchParams.get('fromDate');
     const toDate = url.searchParams.get('toDate');
 
-    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({ error: 'Invalid or missing userId' }, { status: 400 });
-    }
-
-    await dbConnect();
-
-    const leader = await User.findById(userId).populate<{ group: IGroup }>('group');
-    if (!leader || leader.role !== 'leader' || !leader.group) {
+    // ✅ Lookup leader and group from DB
+    const leader = await User.findById(user._id).populate<{ group: IGroup }>('group');
+    if (!leader || !leader.group) {
       return NextResponse.json({ error: 'Leader or group not found' }, { status: 404 });
     }
 
@@ -44,6 +44,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
     }
 
+    // 📅 Attendance filter
     const attendanceFilter: FilterQuery<IAttendance> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
@@ -56,6 +57,7 @@ export async function GET(request: Request) {
 
     const attendanceRecords = await Attendance.find(attendanceFilter).lean<IAttendance[]>();
 
+    // 🗓 Event filter
     const eventFilter: FilterQuery<IEvent> = { group: leader.group._id };
     if (eventId && mongoose.Types.ObjectId.isValid(eventId)) {
       eventFilter._id = new mongoose.Types.ObjectId(eventId);
@@ -63,6 +65,7 @@ export async function GET(request: Request) {
 
     const events = await Event.find(eventFilter).lean();
 
+    // 👥 Members
     const rawMembers = await User.find({
       group: leader.group._id,
       role: 'member',
@@ -70,10 +73,14 @@ export async function GET(request: Request) {
       .select('name email phone')
       .lean<IUser[]>();
 
-    const members: Member[] = rawMembers
-      .filter((m) => typeof m.phone === 'string')
-      .map((m) => ({ _id: m._id, name: m.name, email: m.email, phone: m.phone }));
+    const members: Member[] = rawMembers.map((m) => ({
+      _id: m._id,
+      name: m.name,
+      email: m.email,
+      phone: m.phone,
+    }));
 
+    // 📊 Attendance stats
     const memberAttendanceMap = new Map<string, { count: number; lastDate: Date | null }>();
     members.forEach((m) => memberAttendanceMap.set(m._id.toString(), { count: 0, lastDate: null }));
 
@@ -112,8 +119,8 @@ export async function GET(request: Request) {
       members: enhancedMembers,
       attendanceRecords,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching leader dashboard data:', error);
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to fetch data' }, { status: 500 });
   }
 }
