@@ -1,4 +1,5 @@
 import { SignJWT } from "jose";
+import { cookies } from "next/headers";
 
 const token = await new SignJWT({ id: user._id, role: user.role, email: user.email })
   .setProtectedHeader({ alg: "HS256" })
