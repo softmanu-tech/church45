@@ -1,4 +1,4 @@
-// app/api/leader/dashboard/route.ts
+// app/api/leader/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User, IUser } from '@/lib/models/User';
