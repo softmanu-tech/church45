@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       id: user._id.toString(),
       email: user.email,
       role: user.role,
-    })
+    )
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('7d')
