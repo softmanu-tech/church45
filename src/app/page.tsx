@@ -47,7 +47,7 @@ export default function LoginPage() {
 
                 //redirect
                 if (role=== "bishop") {
-                    router.push("/bishop");
+                    router.push("/bishop/dashboard");
                 } else if (role=== "leader"){
                     router.push("/leader");
                 } else {
