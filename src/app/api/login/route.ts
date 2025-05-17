@@ -42,6 +42,8 @@ export async function POST(req: Request) {
       .setExpirationTime('7d')
       .sign(secret);
 
+    // Set cookie using next/headers
+
     const response = NextResponse.json({
       message: 'Login successful',
       user: {
