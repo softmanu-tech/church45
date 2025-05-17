@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       .setExpirationTime('2h')
       .sign(secret);
 
-      const cookieStore = await cookies(); // ✅ awaited properly
+      const cookieStore = await cookies(); // awaited properly
       cookieStore.set('auth_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
