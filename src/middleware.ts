@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const loginUrl = new URL('/login', request.url);
   const leaderDashboardUrl = new URL('/leader', request.url);
-  const bishopDashboardUrl = new URL('/bishop/dashboard', request.url);
+  const bishopDashboardUrl = new URL('/bishop', request.url);
 
   try {
     // Allow API routes, login/logout pages without auth
