@@ -7,7 +7,8 @@ import Group from "@/lib/models/Group";
 import { Attendance } from "@/lib/models/Attendance";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireSessionAndRole(req, "bishop");
+  const auth = await requireSessionAndRoles(req, ["bishop"]);
+
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
