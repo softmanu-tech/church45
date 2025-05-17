@@ -6,7 +6,8 @@ import { IGroup } from '@/lib/models/Group';
 import Event from '@/lib/models/Event';
 import { Attendance, IAttendance } from '@/lib/models/Attendance';
 import mongoose, { FilterQuery } from 'mongoose';
-import { requireSessionAndRole } from '@/lib/authMiddleware';
+import { requireSessionAndRoles } from "@/lib/authMiddleware";
+
 
 interface Member {
   _id: mongoose.Types.ObjectId;
