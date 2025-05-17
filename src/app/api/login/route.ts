@@ -5,7 +5,7 @@ import bcryptjs from 'bcryptjs';
 import dbConnect from '@/lib/dbConnect';
 
 import { User } from '@/lib/models/User';
-import { cookies } from 'next/dist/server/request/cookies';
+import { cookies } from 'next/headers';
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const COOKIE_NAME = 'auth_token';
