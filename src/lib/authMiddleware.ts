@@ -9,9 +9,7 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 export async function requireSessionAndRoles(
   req: NextRequest | Request,
   allowedRoles: string[]
-): Promise<{
-  user: { id: string; role: string; email: string };
-}> {
+): Promise<{ user: { id: string; role: string; email: string } }> {
   const headers = (req as Request).headers;
   const cookieHeader = headers.get("cookie");
 
@@ -41,14 +39,21 @@ export async function requireSessionAndRoles(
     }
 
     if (!allowedRoles.includes(role)) {
-      throw new Error(
-        `Forbidden: Requires one of [${allowedRoles.join(", ")}], but got '${role}'`
+      console.warn(
+        `⛔ Forbidden: Requires one of [${allowedRoles.join(
+          ", "
+        )}], but got '${role}'`
       );
+      throw new Error("Forbidden");
     }
 
     return { user: { id, email, role } };
-  } catch (err) {
-    console.error("❌ JWT verification failed:", err);
-    throw new Error("Unauthorized: Invalid token");
+  } catch (err: any) {
+    if (err.code === "ERR_JWT_EXPIRED" || err.code === "ERR_JWS_INVALID") {
+      console.error("❌ JWT verification failed:", err);
+      throw new Error("Unauthorized: Invalid token");
+    }
+
+    throw err;
   }
 }
