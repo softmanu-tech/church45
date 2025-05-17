@@ -26,7 +26,7 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    const session = await requireSessionAndRoles(request, ['leader', 'bishop']);
+    const session = await requireSessionAndRoles(request, ['leader']);
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
