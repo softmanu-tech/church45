@@ -10,10 +10,8 @@ const secret = new TextEncoder().encode(JWT_SECRET);
 export async function requireSessionAndRoles(
   req: NextRequest | Request,
   allowedRoles: string[]
-): Promise<{
-  user: { id: string; role: string; email: string };
-}> {
-  const cookieHeader = (req as Request).headers.get("cookie");
+): Promise<{ user: { id: string; email: string; role: string } }> {
+  const cookieHeader = req.headers.get("cookie");
   const token = cookieHeader
     ?.split(";")
     .find((cookie) => cookie.trim().startsWith("auth_token="))
@@ -21,25 +19,28 @@ export async function requireSessionAndRoles(
 
   console.log("🔑 Token from cookie:", token);
 
-  if (!token) {
-    throw new Error("Unauthorized: No session token");
-  }
+  if (!token) throw new Error("Unauthorized");
 
   try {
     const { payload } = await jwtVerify(token, secret);
-    const id = payload.id as string;
-    const email = payload.email as string;
-    const role = payload.role as string;
+    const { id, email, role } = payload as {
+      id: string;
+      email: string;
+      role: string;
+    };
 
     console.log("✅ Decoded JWT payload:", payload);
 
     if (!allowedRoles.includes(role)) {
-      throw new Error("Forbidden");
+      const err = new Error("Forbidden");
+      err.name = "Forbidden";
+      throw err;
     }
 
     return { user: { id, email, role } };
-  } catch (err) {
+  } catch (err: any) {
+    if (err.name === "Forbidden") throw err;
     console.error("❌ JWT verification failed:", err);
-    throw new Error("Unauthorized: Invalid token");
+    throw new Error("Unauthorized");
   }
 }
