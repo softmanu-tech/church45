@@ -43,9 +43,9 @@ export default function LoginPage() {
 
       const redirectTo = data?.redirectTo || '/';
       router.push(redirectTo);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError('Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }
