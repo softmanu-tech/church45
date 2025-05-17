@@ -18,11 +18,11 @@ export async function middleware(req: NextRequest) {
     const { payload } = await jwtVerify(token, secret);
     const role = payload.role as string;
 
-    if (req.nextUrl.pathname === "/dashboard") {
+    if (req.nextUrl.pathname === "/") {
       const redirectTo = role === "bishop"
         ? "/bishop/dashboard"
         : role === "leader"
-        ? "/leader/dashboard"
+        ? "/leader"
         : "/login";
 
       return NextResponse.redirect(new URL(redirectTo, req.url));
@@ -36,5 +36,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard"], // only apply middleware to /dashboard
+  matcher: ["/"], // only apply middleware to /dashboard
 };
