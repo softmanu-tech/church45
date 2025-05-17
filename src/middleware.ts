@@ -1,40 +1,68 @@
-
-
-
-
 // middleware.ts
-import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
-const secret = new TextEncoder().encode(JWT_SECRET);
+// Type for the JWT token with role information
+interface AuthToken {
+    role?: 'bishop' | 'leader';
+    email?: string;
+    // Add other token properties you expect
+}
 
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get("auth_token")?.value;
+export async function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+    const loginUrl = new URL('/login', request.url);
+    const leaderDashboardUrl = new URL('/dashboard/leader', request.url);
+    const bishopDashboardUrl = new URL('/dashboard/bishop', request.url);
 
-  if (!token) return NextResponse.redirect(new URL("/login", req.url));
+    try {
+        // Get token from the request
+        const token = await getToken({ req: request }) as AuthToken | null;
 
-  try {
-    const { payload } = await jwtVerify(token, secret);
-    const role = payload.role as string;
+        // 1. Authentication Check
+        if (!token) {
+            if (!pathname.startsWith('/login')) {
+                // Add redirect URL for post-login redirect
+                loginUrl.searchParams.set('callbackUrl', pathname);
+                return NextResponse.redirect(loginUrl);
+            }
+            return NextResponse.next();
+        }
 
-    if (req.nextUrl.pathname === "/") {
-      const redirectTo = role === "bishop"
-        ? "/bishop/dashboard"
-        : role === "leader"
-        ? "/leader"
-        : "/login";
+        // 2. Authorization Check
+        if (pathname.startsWith('/bishop')) {
+            if (token.role !== 'bishop') {
+                return NextResponse.redirect(leaderDashboardUrl);
+            }
+            return NextResponse.next();
+        }
 
-      return NextResponse.redirect(new URL(redirectTo, req.url));
+        if (pathname.startsWith('/leader')) {
+            if (token.role !== 'leader') {
+                return NextResponse.redirect(bishopDashboardUrl);
+            }
+            return NextResponse.next();
+        }
+
+        // Default allow for other /dashboard routes if authenticated
+        return NextResponse.next();
+
+    } catch (error) {
+        console.error('Middleware error:', error);
+
+        loginUrl.searchParams.set('error', 'middleware_failure');
+        return NextResponse.redirect(loginUrl);
     }
-  } catch (err) {
-    return NextResponse.redirect(new URL("/login", req.url));
-    console.error("JWT verification failed:", err);
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/"], // only apply middleware to /dashboard
+    matcher: [
+        '/dashboard/:path*',
+        
+    ],
 };
+
+
+
+
