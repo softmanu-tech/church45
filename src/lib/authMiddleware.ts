@@ -6,17 +6,15 @@ if (!JWT_SECRET) throw new Error("JWT_SECRET not set in environment");
 
 const secret = new TextEncoder().encode(JWT_SECRET);
 
-export async function requireSessionAndRole(
+export async function requireSessionAndRoles(
   req: NextRequest | Request,
-  requiredRole: string
+  allowedRoles: string[]
 ): Promise<{
   user: { id: string; role: string; email: string };
 }> {
-  // Correctly extract the cookie header
   const headers = (req as Request).headers;
   const cookieHeader = headers.get("cookie");
 
-  // Find the auth_token cookie
   const token = cookieHeader
     ?.split(";")
     .find((cookie) => cookie.trim().startsWith("auth_token="))
@@ -42,8 +40,10 @@ export async function requireSessionAndRole(
       throw new Error("Unauthorized: Missing token fields");
     }
 
-    if (role !== requiredRole) {
-      throw new Error(`Forbidden: Required role '${requiredRole}', but got '${role}'`);
+    if (!allowedRoles.includes(role)) {
+      throw new Error(
+        `Forbidden: Requires one of [${allowedRoles.join(", ")}], but got '${role}'`
+      );
     }
 
     return { user: { id, email, role } };
