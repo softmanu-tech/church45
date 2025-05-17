@@ -1,7 +1,7 @@
 // app/api/bishop/dashboard/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import { User } from "@/lib/models/User";
 import Group from "@/lib/models/Group";
 import { Attendance } from "@/lib/models/Attendance";
