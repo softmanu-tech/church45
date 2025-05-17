@@ -32,7 +32,8 @@ export async function middleware(request: NextRequest) {
 
     // Verify token
     const { payload } = await jwtVerify(cookie, secret);
-    const token = payload as AuthToken;
+    const token = payload as unknown as AuthToken;
+
 
     // Bishop-only routes
     if (pathname.startsWith('/bishop')) {
