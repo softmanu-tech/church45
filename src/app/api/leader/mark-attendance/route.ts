@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import Group from "@/lib/models/Group";
 import Event from "@/lib/models/Event";
 import Member from "@/lib/models/Member";
