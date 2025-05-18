@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (!event.attendance) event.attendance = [];
 
     if (attended) {
-      const alreadyMarked = event.attendance.some((id: any) => id.equals(memberObjId));
+      const alreadyMarked = event.attendance.some((id) => id.equals(memberObjId));
       if (!alreadyMarked) {
         event.attendance.push(memberObjId);
       }
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       message: "Attendance updated successfully",
       attendance: event.attendance,
     });
-  } catch (err) {
+  } catch (err: any) {
     const status = err.name === "Forbidden" ? 403 : 401;
     return NextResponse.json({ error: err.message }, { status });
   }
