@@ -7,15 +7,10 @@ import Member from "@/lib/models/Member";
 import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
-  const result = await requireSessionAndRoles(req, ["leader"]);
-  if (!result) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const session = result.session;
-  const leaderId = session.user.id;
-
   try {
+    const { user } = await requireSessionAndRoles(req, ["leader"]);
+    const leaderId = user.id;
+
     await dbConnect();
 
     const { eventId, memberId, attended } = await req.json();
@@ -28,24 +23,33 @@ export async function POST(req: NextRequest) {
     }
 
     const group = await Group.findOne({ leader: leaderId });
-    if (!group) return NextResponse.json({ error: "Group not found" }, { status: 404 });
+    if (!group) {
+      return NextResponse.json({ error: "Group not found" }, { status: 404 });
+    }
 
     const event = await Event.findOne({ _id: eventId, group: group._id });
-    if (!event) return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
 
     const member = await Member.findOne({ _id: memberId, group: group._id });
-    if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    if (!member) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
 
     const memberObjId = new mongoose.Types.ObjectId(memberId);
 
     if (!event.attendance) event.attendance = [];
 
     if (attended) {
-      if (!event.attendance.some((id: any) => id.equals(memberObjId))) {
+      const alreadyMarked = event.attendance.some((id: any) => id.equals(memberObjId));
+      if (!alreadyMarked) {
         event.attendance.push(memberObjId);
       }
     } else {
-      event.attendance = event.attendance.filter((id: any) => !id.equals(memberObjId));
+      event.attendance = event.attendance.filter(
+        (id: any) => !id.equals(memberObjId)
+      );
     }
 
     await event.save();
@@ -54,8 +58,8 @@ export async function POST(req: NextRequest) {
       message: "Attendance updated successfully",
       attendance: event.attendance,
     });
-  } catch (error) {
-    console.error("Error:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (err: any) {
+    const status = err.name === "Forbidden" ? 403 : 401;
+    return NextResponse.json({ error: err.message }, { status });
   }
 }
