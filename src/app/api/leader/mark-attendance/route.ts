@@ -7,7 +7,7 @@ import Member from "@/lib/models/Member";
 import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
-  const result = await requireSessionAndRole(req, "leader");
+  const result = await requireSessionAndRoles(req, ["leader"]);
   if (!result) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
