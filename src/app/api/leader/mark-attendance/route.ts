@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
       }
     } else {
       event.attendance = event.attendance.filter(
-        (id: any) => !id.equals(memberObjId)
+        (id) => !id.equals(memberObjId)
       );
     }
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       message: "Attendance updated successfully",
       attendance: event.attendance,
     });
-  } catch (err: any) {
+  } catch (err) {
     const status = err.name === "Forbidden" ? 403 : 401;
     return NextResponse.json({ error: err.message }, { status });
   }
