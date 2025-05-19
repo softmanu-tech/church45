@@ -6,7 +6,7 @@ import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import { User } from "@/lib/models/User";
 
 export async function POST(req: NextRequest) {
-  const auth = await requireSessionAndRoles(req, "bishop");
+  const auth = await requireSessionAndRoles(req, ["bishop"]);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { name, email, password, groupId } = await req.json();
