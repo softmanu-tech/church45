@@ -1,23 +1,30 @@
-export async function GET(request: Request) {
+const fetchData = async () => {
+  setLoading(true);
   try {
-    await dbConnect();
+    const params = new URLSearchParams();
     
-    // Debug: Log entire request
-    console.log('\n=== Incoming Request ===');
-    console.log('URL:', request.url);
+    // Only pass filter params, not userId/groupId
+    if (selectedEventId) params.append('eventId', selectedEventId);
+    if (fromDate) params.append('fromDate', fromDate);
+    if (toDate) params.append('toDate', toDate);
 
-    // Get both JWT auth AND query params
-    const session = await requireSessionAndRoles(request, ['leader']);
-    const { searchParams } = new URL(request.url);
+    console.log('Fetching with params:', params.toString());
     
-    // Debug: Log all parameters
-    console.log('Query params:', Object.fromEntries(searchParams.entries()));
-    console.log('Session user:', session?.user?.id);
+    const res = await fetch(`/api/leader?${params.toString()}`, {
+      credentials: 'include' // Ensure cookies are sent
+    });
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to fetch data');
     }
 
-    // Rest of your existing logic...
+    const json = await res.json();
+    setData(json);
+  } catch (err) {
+    console.error('Fetch error:', err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
   }
-}
+};
