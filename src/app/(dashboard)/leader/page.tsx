@@ -389,10 +389,8 @@ export default function LeaderDashboard() {
                 label
               >
                 {ratingDistribution.map((entry, index) => (
-                  <Cell
-                    key={entry.name}
-                    fill={ratingColors[entry.name as keyof typeof ratingColors]}
-                  />
+                          <Cell key={`cell-${index}`} fill={ratingColors[entry.name as keyof typeof ratingColors]} />
+
                 ))}
               </Pie>
               <Tooltip />

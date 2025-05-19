@@ -48,7 +48,6 @@ className="border px-3 py-2 rounded"
       label
     >
       {ratingDistribution.map((entry, index) => (
-        <Cell key={`cell-${index}`} fill={ratingColors[entry.name as keyof typeof ratingColors]} />
       ))}
     </Pie>
     <Legend />
