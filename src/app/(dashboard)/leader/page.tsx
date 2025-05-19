@@ -116,6 +116,7 @@ export default function LeaderDashboard() {
         setData(json);
         setCurrentPage(1); // Reset page on new filter
       } catch (err) {
+        console.error('Fetch error:', err);
         setError((err as Error).message);
       } finally {
         setLoading(false);
