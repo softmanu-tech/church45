@@ -84,6 +84,13 @@ export default function LeaderDashboard() {
 
   // Fetch data with all filters applied as query params
   useEffect(() => {
+    console.log("DEBUG - Filter changes detected:", {
+      userId,
+      groupId,
+      selectedEventId,
+      fromDate,
+      toDate
+    });
     if (!userId) return;
     const  fetchData = async () => {
       setLoading(true);
