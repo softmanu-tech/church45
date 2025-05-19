@@ -8,7 +8,6 @@ const fetchData = async () => {
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
 
-    console.log('Fetching with params:', params.toString());
     
     const res = await fetch(`/api/leader?${params.toString()}`, {
       credentials: 'include' // Ensure cookies are sent

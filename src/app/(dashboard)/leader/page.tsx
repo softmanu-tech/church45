@@ -102,6 +102,9 @@ export default function LeaderDashboard() {
         if (fromDate) params.append('fromDate', fromDate);
         if (toDate) params.append('toDate', toDate);
 
+        console.log('Fetching with params:', params.toString());
+
+
         const res = await fetch(`/api/leader?${params.toString()}`);
         if (!res.ok) {
           throw new Error('Failed to fetch data');
