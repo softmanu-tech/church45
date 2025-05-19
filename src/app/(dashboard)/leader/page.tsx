@@ -110,7 +110,7 @@ export default function LeaderDashboard() {
         });
         if (!res.ok) {
           const errorData = await res.json();
-          throw new Error('Failed to fetch data');
+          throw new Error(errorData.error || 'Failed to fetch data');
         }
         const json: DashboardResponse = await res.json();
         setData(json);
