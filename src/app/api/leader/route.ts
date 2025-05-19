@@ -36,9 +36,11 @@ export async function GET(request: Request) {
 
     console.log('Query params:', Object.fromEntries(searchParams.entries()));
     console.log('Session user:', session?.user?.id);
-    if (!session || !session.user?.id) {
+
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
 
     const leaderId = new mongoose.Types.ObjectId(session.user.id);
 
