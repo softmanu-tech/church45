@@ -105,7 +105,9 @@ export default function LeaderDashboard() {
         console.log('Fetching with params:', params.toString());
 
 
-        const res = await fetch(`/api/leader?${params.toString()}`);
+        const res = await fetch(`/api/leader?${params.toString()}`,{
+          credentials: 'include' //sent cookies
+        });
         if (!res.ok) {
           throw new Error('Failed to fetch data');
         }
