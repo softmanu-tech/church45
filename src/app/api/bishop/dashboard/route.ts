@@ -20,7 +20,7 @@ interface GroupWithLeader {
 }
 
 export async function GET(request: Request) {
-  const roleCheck = await requireSessionAndRoles(request, "bishop");
+  const roleCheck = await requireSessionAndRoles(request, ["bishop"]);
   if (!roleCheck)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
