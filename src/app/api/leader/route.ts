@@ -1,6 +1,6 @@
 // app/api/leader/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
 import { Attendance } from '@/lib/models/Attendance';
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     await dbConnect();
 
     // ✅ Authentication & Role Check
-    const session = await requireSessionAndRoles(request, ['leader']);
+    const session = await requireSessionAndRoles(req, ['leader']);
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
