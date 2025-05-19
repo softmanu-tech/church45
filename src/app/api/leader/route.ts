@@ -1,6 +1,6 @@
 // app/api/leader/route.ts
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
 import { Attendance } from '@/lib/models/Attendance';
@@ -25,12 +25,12 @@ interface EnhancedMember extends Member {
   rating: 'Excellent' | 'Average' | 'Poor';
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(request: Request) {
   try {
     await dbConnect();
 
     // ✅ Authentication & Role Check
-    const session = await requireSessionAndRoles(req, ['leader']);
+    const session = await requireSessionAndRoles(request, ['leader']);
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -38,11 +38,13 @@ export async function GET(req: NextRequest) {
     const leaderId = new mongoose.Types.ObjectId(session.user.id);
 
     // ✅ Parse Query Parameters
-    const {searchParams} = new URL(req.url);
-    const groupId = searchParams.get('groupId') || undefined; // Fallback
-    if (!groupId) return NextResponse.json({ error: 'Missing groupId' }, { status: 400 });
+    const url = new URL(request.url);
     console.log("\n\n===== NEW API REQUEST =====");
-    
+    console.log("Incoming query params:", Object.fromEntries(url.searchParams.entries()));
+    const groupId = url.searchParams.get('groupId');
+    const eventId = url.searchParams.get('eventId');
+    const fromDate = url.searchParams.get('fromDate');
+    const toDate = url.searchParams.get('toDate');
 
     // ✅ Find Leader & Validate Group
     const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
