@@ -1,29 +1,29 @@
-const fetchData = async () => {
-  setLoading(true);
-  try {
-    const params = new URLSearchParams();
-    
-    // Only pass filter params, not userId/groupId
-    if (selectedEventId) params.append('eventId', selectedEventId);
-    if (fromDate) params.append('fromDate', fromDate);
-    if (toDate) params.append('toDate', toDate);
+useEffect(() => {
+  if (!userId) return; // Still check if userId exists (from session)
 
-    
-    const res = await fetch(`/api/leader?${params.toString()}`, {
-      credentials: 'include' // Ensure cookies are sent
-    });
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      // Only send FILTER params (not userId/groupId)
+      if (selectedEventId) params.append('eventId', selectedEventId);
+      if (fromDate) params.append('fromDate', fromDate);
+      if (toDate) params.append('toDate', toDate);
 
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Failed to fetch data');
+      const res = await fetch(`/api/leader?${params.toString()}`, {
+        credentials: 'include' // Send cookies for JWT
+      });
+
+      if (!res.ok) throw new Error(await res.text());
+      
+      setData(await res.json());
+      setCurrentPage(1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const json = await res.json();
-    setData(json);
-  } catch (err) {
-    console.error('Fetch error:', err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  fetchData();
+}, [userId, selectedEventId, fromDate, toDate]); // Remove groupId from deps
