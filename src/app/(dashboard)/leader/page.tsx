@@ -97,7 +97,7 @@ export default function LeaderDashboard() {
       try {
         console.log('Submitting:', { userId, groupId });
         const params = new URLSearchParams();
-        params.append('userId', userId);
+        //params.append('userId', userId);
         if (selectedEventId) params.append('eventId', selectedEventId);
         if (fromDate) params.append('fromDate', fromDate);
         if (toDate) params.append('toDate', toDate);
