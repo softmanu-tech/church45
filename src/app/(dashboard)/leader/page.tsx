@@ -109,6 +109,7 @@ export default function LeaderDashboard() {
           credentials: 'include' //sent cookies
         });
         if (!res.ok) {
+          const errorData = await res.json();
           throw new Error('Failed to fetch data');
         }
         const json: DashboardResponse = await res.json();
