@@ -39,6 +39,13 @@ export async function GET(request: Request) {
 
     // ✅ Parse Query Parameters
     const url = new URL(request.url);
+    console.log('Query Parameters:', {
+      userId: url.searchParams.get('userId'),
+      groupId: url.searchParams.get('groupId'),
+      eventId: url.searchParams.get('eventId'),
+      fromDate: url.searchParams.get('fromDate'),
+      toDate: url.searchParams.get('toDate')
+    });
     const groupId = url.searchParams.get('groupId');
     const eventId = url.searchParams.get('eventId');
     const fromDate = url.searchParams.get('fromDate');
