@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
 
     // ✅ Parse Query Parameters
     const {searchParams} = new URL(req.url);
+    const groupId = searchParams.get('groupId'); 
     console.log("\n\n===== NEW API REQUEST =====");
     
 
