@@ -1,29 +1,12 @@
-useEffect(() => {
-  if (!userId) return; // Still check if userId exists (from session)
+// In your API route (`app/api/leader/route.ts`):
+export async function GET(request: Request) {
+  const session = await requireSessionAndRoles(request, ['leader']);
+  const { searchParams } = new URL(request.url);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams();
-      // Only send FILTER params (not userId/groupId)
-      if (selectedEventId) params.append('eventId', selectedEventId);
-      if (fromDate) params.append('fromDate', fromDate);
-      if (toDate) params.append('toDate', toDate);
+  // Use URL params as fallback (for debugging only - remove in production)
+  const userId = session?.user?.id || searchParams.get('userId');
+  const groupId = searchParams.get('groupId'); 
 
-      const res = await fetch(`/api/leader?${params.toString()}`, {
-        credentials: 'include' // Send cookies for JWT
-      });
-
-      if (!res.ok) throw new Error(await res.text());
-      
-      setData(await res.json());
-      setCurrentPage(1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchData();
-}, [userId, selectedEventId, fromDate, toDate]); // Remove groupId from deps
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // ...
+}
