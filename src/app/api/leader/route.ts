@@ -40,11 +40,7 @@ export async function GET(req: NextRequest) {
     // ✅ Parse Query Parameters
     const {searchParams} = new URL(req.url);
     console.log("\n\n===== NEW API REQUEST =====");
-    console.log("Incoming query params:", Object.fromEntries(url.searchParams.entries()));
-    const groupId = url.searchParams.get('groupId');
-    const eventId = url.searchParams.get('eventId');
-    const fromDate = url.searchParams.get('fromDate');
-    const toDate = url.searchParams.get('toDate');
+    
 
     // ✅ Find Leader & Validate Group
     const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
