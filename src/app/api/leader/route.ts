@@ -31,6 +31,7 @@ export async function GET(request: Request) {
 
     // ✅ Authentication & Role Check
     const session = await requireSessionAndRoles(request, ['leader']);
+    const { searchParams } = new URL(request.url);
     if (!session || !session.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
