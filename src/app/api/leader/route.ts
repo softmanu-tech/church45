@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const leaderId = new mongoose.Types.ObjectId(session.user.id);
 
     // ✅ Parse Query Parameters
-    const url = new URL(request.url);
+    const url = new URL(req.url);
     console.log("\n\n===== NEW API REQUEST =====");
     console.log("Incoming query params:", Object.fromEntries(url.searchParams.entries()));
     const groupId = url.searchParams.get('groupId');
