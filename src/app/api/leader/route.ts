@@ -25,7 +25,7 @@ interface EnhancedMember extends Member {
   rating: 'Excellent' | 'Average' | 'Poor';
 }
 
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   try {
     await dbConnect();
 
