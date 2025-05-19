@@ -39,7 +39,8 @@ export async function GET(req: NextRequest) {
 
     // ✅ Parse Query Parameters
     const {searchParams} = new URL(req.url);
-    const groupId = searchParams.get('groupId'); 
+    const groupId = searchParams.get('groupId') || undefined; // Fallback
+    if (!groupId) return NextResponse.json({ error: 'Missing groupId' }, { status: 400 });
     console.log("\n\n===== NEW API REQUEST =====");
     
 
