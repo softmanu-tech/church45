@@ -4,7 +4,7 @@ import { User } from "@/lib/models/User";
 import Group from "@/lib/models/Group";
 import { Attendance } from "@/lib/models/Attendance";
 import Event from "@/lib/models/Event"; // Assuming default export here
-import { requireSessionAndRole, requireSessionAndRoles } from "@/lib/authMiddleware";
+import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import { Types } from "mongoose";
 
 interface Leader {
