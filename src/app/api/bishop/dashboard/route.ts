@@ -4,7 +4,7 @@ import { User } from "@/lib/models/User";
 import Group from "@/lib/models/Group";
 import { Attendance } from "@/lib/models/Attendance";
 import Event from "@/lib/models/Event"; // Assuming default export here
-import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { requireSessionAndRole, requireSessionAndRoles } from "@/lib/authMiddleware";
 import { Types } from "mongoose";
 
 interface Leader {
@@ -20,7 +20,7 @@ interface GroupWithLeader {
 }
 
 export async function GET(request: Request) {
-  const roleCheck = await requireSessionAndRole(request, "bishop");
+  const roleCheck = await requireSessionAndRoles(request, "bishop");
   if (!roleCheck)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
