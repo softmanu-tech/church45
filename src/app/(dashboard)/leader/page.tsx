@@ -388,7 +388,7 @@ export default function LeaderDashboard() {
                 outerRadius={100}
                 label
               >
-                {ratingDistribution.map((entry) => (
+                {ratingDistribution.map((entry, index) => (
                   <Cell
                     key={entry.name}
                     fill={ratingColors[entry.name as keyof typeof ratingColors]}
