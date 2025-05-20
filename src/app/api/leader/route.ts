@@ -46,7 +46,9 @@ export async function GET(request: Request) {
       .populate('members', 'name email phone');
       .populate('leader', 'name email');
 
-      
+    if (!group) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    }
 
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
