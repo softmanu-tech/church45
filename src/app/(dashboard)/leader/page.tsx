@@ -106,7 +106,8 @@ export default function LeaderDashboard() {
 
 
         const res = await fetch(`/api/leader?${params.toString()}`,{
-          credentials: 'include' //sent cookies
+          credentials: 'include', //sent cookies
+          
         });
         if (!res.ok) {
           const errorData = await res.json();
