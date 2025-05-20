@@ -81,7 +81,7 @@ export default function LeaderDashboard() {
 
   // Fetch data with all filters applied as query params
   useEffect(() => {
-    
+
     console.log("DEBUG - Filter changes detected:", {
       userId,
       groupId,
@@ -93,7 +93,7 @@ export default function LeaderDashboard() {
     const  fetchData = async () => {
       setLoading(true);
       try {
-        console.log('Submitting:', { userId, groupId });
+        
         const params = new URLSearchParams();
         //params.append('userId', userId);
         if (selectedEventId) params.append('eventId', selectedEventId);
@@ -125,7 +125,7 @@ export default function LeaderDashboard() {
     }; 
     
     fetchData();
-  }, [userId, selectedEventId,groupId, fromDate, toDate]);
+  }, [ selectedEventId, fromDate, toDate]);
 
   // The rest filtering/search/sort/pagination logic stays the same...
 
