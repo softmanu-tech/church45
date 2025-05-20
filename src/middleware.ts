@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
 
   try {
 
-    
+    const  payload = await verifyToken(token);
     // Get token from cookie
     const cookie = request.cookies.get('auth_token')?.value;
 
