@@ -63,9 +63,7 @@ function LoadingSkeleton() {
 }
 
 export default function LeaderDashboard() {
-  const searchParams = useSearchParams();
-  const userId = searchParams.get('userId');
-  const groupId = searchParams.get('groupId');
+  
   const [data, setData] = useState<DashboardResponse| null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
