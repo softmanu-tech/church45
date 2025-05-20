@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
-import Group} from "@/lib/models/Group";
+import {Group} from "@/lib/models/Group";
 import Event from "@/lib/models/Event";
 import Member from "@/lib/models/Member";
 import mongoose from "mongoose";
@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
       message: "Attendance updated successfully",
       attendance: event.attendance,
     });
-  } catch (err: any) {
+  } catch (err) {
     const status = err.name === "Forbidden" ? 403 : 401;
-    return NextResponse.json({ error: err.message }, { status });
+    return NextResponse.json({ error:}, { status });
   }
 }
