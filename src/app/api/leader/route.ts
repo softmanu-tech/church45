@@ -265,7 +265,7 @@ export async function createEvent(request: Request) {
   const { user } = await requireSessionAndRoles(request, ["leader"]);
   if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { title, description, date } = await req.json();
+  const { title, description, date } = await request.json();
 
   try {
     await dbConnect();
