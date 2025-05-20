@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
       message: "Attendance updated successfully",
       attendance: event.attendance,
     });
-  } catch (err) {
+  } catch (err: any) {
     const status = err.name === "Forbidden" ? 403 : 401;
-    return NextResponse.json({ err, "wrong":}, { status });
+    return NextResponse.json({ error: err.message }, { status });
   }
 }
