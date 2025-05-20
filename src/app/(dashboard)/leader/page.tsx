@@ -57,7 +57,7 @@ function LoadingSkeleton() {
       initial={{ opacity: 0.3 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
-      className="w-full h-8 bg-gray-300 rounded my-2"
+      className="w-full h-8 bg-red-300 rounded my-2"
     />
   );
 }
