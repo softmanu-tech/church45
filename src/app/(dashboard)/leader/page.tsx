@@ -1,6 +1,5 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
 
 import { motion } from 'framer-motion';
 import {
@@ -87,7 +86,6 @@ export default function LeaderDashboard() {
       fromDate,
       toDate
     });
-    if (!res.ok) return;
     const  fetchData = async () => {
       setLoading(true);
       try {
