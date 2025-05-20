@@ -7,7 +7,7 @@ import Event from '@/lib/models/Event';
 import { Group } from '@/lib/models/Group';
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import mongoose, { FilterQuery } from 'mongoose';
-import { IAttendance, IUser, IGroup } from '@/lib/models';
+import type { IAttendance, IUser, IGroup } from '@/lib/models';
 
 interface EnhancedMember {
   _id: mongoose.Types.ObjectId;
@@ -23,47 +23,27 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // 1. Strict Authentication
+    // 1. Authentication and Leader Validation
     const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const leader = await User.findById(user.id)
+      .populate<{ group: InstanceType<typeof Group> }>('group')
+      .lean();
 
-    // 2. Get Leader with Group
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
     if (!leader?.group) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
-    // 3. Parse and Validate Filters
+    // 2. Parse and Validate Query Parameters
     const { searchParams } = new URL(request.url);
-    
     const eventId = searchParams.get('eventId');
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
 
-    const group = await Group.findById(leader.group._id);
-      .populate('members', 'name email phone');
-      .populate('leader', 'name email');
-
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
-    }
-    return NextResponse.json({
-      group: {
-        _id: group._id.toString(),
-        name: group.name,
-        members: group.members,
-        leader: group.leader
-      }
-    });
-
-
-    if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
+    if (eventId && !mongoose.isValidObjectId(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
     }
 
-    // 4. Build Secure Filters
+    // 3. Build Attendance Filters
     const attendanceFilter: FilterQuery<IAttendance> = {
       group: leader.group._id,
       ...(eventId && { event: new mongoose.Types.ObjectId(eventId) }),
@@ -75,22 +55,22 @@ export async function GET(request: Request) {
       }
     };
 
-    // 5. Fetch Data
+    // 4. Fetch Data in Parallel
     const [attendanceRecords, events, rawMembers] = await Promise.all([
-      Attendance.find(attendanceFilter).lean<IAttendance[]>(),
+      Attendance.find(attendanceFilter).lean(),
       Event.find({ group: leader.group._id }).lean(),
       User.find({ group: leader.group._id, role: 'member' })
         .select('name email phone')
-        .lean<IUser[]>()
+        .lean()
     ]);
 
-    // 6. Process Member Attendance
+    // 5. Calculate Member Attendance Stats
     const memberStats = new Map<string, { count: number; lastDate: Date | null }>(
       rawMembers.map(m => [m._id.toString(), { count: 0, lastDate: null }])
     );
 
-    for (const record of attendanceRecords) {
-      for (const memberId of record.presentMembers) {
+    attendanceRecords.forEach(record => {
+      record.presentMembers.forEach(memberId => {
         const stats = memberStats.get(memberId.toString());
         if (stats) {
           stats.count++;
@@ -98,10 +78,10 @@ export async function GET(request: Request) {
             stats.lastDate = record.date;
           }
         }
-      }
-    }
+      });
+    });
 
-    // 7. Create Enhanced Members
+    // 6. Create Enhanced Member Data
     const enhancedMembers: EnhancedMember[] = rawMembers.map(member => {
       const stats = memberStats.get(member._id.toString())!;
       return {
@@ -115,11 +95,18 @@ export async function GET(request: Request) {
       };
     });
 
-    // 8. Return Secure Response
+    // 7. Get Full Group Details
+    const group = await Group.findById(leader.group._id)
+      .populate('members', 'name email phone')
+      .populate('leader', 'name email')
+      .lean();
+
     return NextResponse.json({
       group: {
-        _id: leader.group._id.toString(),
-        name: leader.group.name
+        _id: group?._id.toString() || '',
+        name: group?.name || '',
+        members: group?.members || [],
+        leader: group?.leader || null
       },
       events,
       members: enhancedMembers,
