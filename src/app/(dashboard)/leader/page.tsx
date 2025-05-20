@@ -83,13 +83,11 @@ export default function LeaderDashboard() {
   useEffect(() => {
 
     console.log("DEBUG - Filter changes detected:", {
-      userId,
-      groupId,
       selectedEventId,
       fromDate,
       toDate
     });
-    if (!userId) return;
+    if (!res.ok) return;
     const  fetchData = async () => {
       setLoading(true);
       try {
