@@ -63,7 +63,6 @@ function LoadingSkeleton() {
 }
 
 export default function LeaderDashboard() {
-  
   const [data, setData] = useState<DashboardResponse| null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +81,7 @@ export default function LeaderDashboard() {
 
   // Fetch data with all filters applied as query params
   useEffect(() => {
+    
     console.log("DEBUG - Filter changes detected:", {
       userId,
       groupId,
