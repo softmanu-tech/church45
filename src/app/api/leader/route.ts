@@ -55,7 +55,10 @@ export async function GET(request: Request) {
     const toDate = url.searchParams.get('toDate');
 
     const data = await fetchLeaderData({
-      groupId
+      groupId: user.groupId,
+      eventId,
+      fromDate,
+      toDate,
     })
 
     // ✅ Find Leader & Validate Group
