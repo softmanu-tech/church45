@@ -124,7 +124,8 @@ export default function LeaderDashboard() {
       } finally {
         setLoading(false);
       }
-    }
+    }; 
+    
     fetchData();
   }, [userId, selectedEventId,groupId, fromDate, toDate]);
 
