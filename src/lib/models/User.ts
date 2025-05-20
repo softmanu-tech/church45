@@ -23,6 +23,3 @@ const UserSchema: Schema<IUser> = new Schema(
 );
 
 export const User = models.User || model<IUser>('User', UserSchema);
-// src/lib/models/User.ts
-// Add this at the end:
-export type { IUser };
