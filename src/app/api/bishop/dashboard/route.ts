@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     );
 
     const groups = await Group.find()
-      .populate<{ leader: Leader }>("leader", "name email")
+      .populate<{ leader: Leader }>("leader", "name", "email")
       .lean()
       .exec();
 
