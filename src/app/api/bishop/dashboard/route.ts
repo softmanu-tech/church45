@@ -71,7 +71,7 @@ export async function GET(request: Request) {
         return {
           groupId: g._id.toString(),
           groupName: g.name,
-          leaderName: g.leader?.name || "Unassigned",
+          leaderName: g.leader || "Unassigned",
           leaderEmail: g.leader?.email || "N/A",
           memberCount,
           eventCount,
