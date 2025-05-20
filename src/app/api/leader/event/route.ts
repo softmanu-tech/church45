@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import { requireSessionAndRole } from "@/lib/authMiddleware";
+import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import  Event  from "@/lib/models/Event";
 import { User } from "@/lib/models/User";
 
 export async function POST(req: NextRequest) {
-  const auth = await requireSessionAndRole(req, "leader");
+  const auth = await requireSessionAndRoles(req, "leader");
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { title, description, date } = await req.json();
