@@ -42,6 +42,8 @@ export async function GET(request: Request) {
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
 
+    const _ = Group;
+
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
