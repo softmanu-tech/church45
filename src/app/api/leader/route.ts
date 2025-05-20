@@ -1,5 +1,4 @@
 // app/api/leader/route.ts
-
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
@@ -7,19 +6,13 @@ import { Attendance } from '@/lib/models/Attendance';
 import Event from '@/lib/models/Event';
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import mongoose, { FilterQuery } from 'mongoose';
-import { IAttendance } from '@/lib/models/Attendance';
-import { IUser } from '@/lib/models/User';
-import { IGroup } from '@/lib/models/Group';
+import { IAttendance, IUser, IGroup } from '@/lib/models';
 
-// Types
-interface Member {
+interface EnhancedMember {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
   phone?: string;
-}
-
-interface EnhancedMember extends Member {
   attendanceCount: number;
   lastAttendanceDate: Date | null;
   rating: 'Excellent' | 'Average' | 'Poor';
@@ -29,75 +22,41 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // ✅ Authentication & Role Check
-    const session = await requireSessionAndRoles(request, ['leader']);
+    // 1. Strict Authentication
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    // 3. Parse and Validate Filters
     const { searchParams } = new URL(request.url);
+    const eventId = searchParams.get('eventId');
+    const fromDate = searchParams.get('fromDate');
+    const toDate = searchParams.get('toDate');
 
-
-    console.log('Query params:', Object.fromEntries(searchParams.entries()));
-    console.log('Session user:', session?.user?.id);
-
-    const userId = session?.user?.id || searchParams.get('userId');
-    const groupId = searchParams.get('groupId'); 
-  
-    if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  
-    
-
-    const leaderId = new mongoose.Types.ObjectId(session.user.id);
-
-    // ✅ Parse Query Parameters
-    const url = new URL(request.url);
-    console.log("\n\n===== NEW API REQUEST =====");
-    console.log("Incoming query params:", Object.fromEntries(url.searchParams.entries()));
-    const eventId = url.searchParams.get('eventId');
-    const fromDate = url.searchParams.get('fromDate');
-    const toDate = url.searchParams.get('toDate');
-
-    const data = await fetchLeaderData({
-      groupId: user.groupId,
-      eventId,
-      fromDate,
-      toDate,
-    });
-    return NextResponse.json(data);
-    
-
-    // ✅ Find Leader & Validate Group
-    const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
-    if (!leader || !leader.group) {
-      return NextResponse.json({ error: 'Leader or group not found' }, { status: 404 });
-    }
-
-    const leaderGroupId = leader.group._id.toString();
-
-    // ✅ Restrict access to leader's own group only
-    if (groupId && groupId !== leaderGroupId) {
-      return NextResponse.json({ error: 'Invalid group filter' }, { status: 403 });
-    }
-
-    // ✅ Validate optional eventId format
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
-      return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
     }
 
-    // ✅ Prepare Attendance Filter
+    // 4. Build Secure Filters
     const attendanceFilter: FilterQuery<IAttendance> = {
-      group: leader.group._id
+      group: leader.group._id,
+      ...(eventId && { event: new mongoose.Types.ObjectId(eventId) }),
+      ...(fromDate || toDate) && {
+        date: {
+          ...(fromDate && { $gte: new Date(fromDate) }),
+          ...(toDate && { $lte: new Date(toDate) })
+        }
+      }
     };
 
-    if (eventId) {
-      attendanceFilter.event = new mongoose.Types.ObjectId(eventId);
-    }
-
-    if (fromDate || toDate) {
-      const dateFilter: { $gte?: Date; $lte?: Date } = {};
-      if (fromDate) dateFilter.$gte = new Date(fromDate);
-      if (toDate) dateFilter.$lte = new Date(toDate);
-      attendanceFilter.date = dateFilter;
-    }
-
-    // ✅ Fetch in parallel
+    // 5. Fetch Data
     const [attendanceRecords, events, rawMembers] = await Promise.all([
       Attendance.find(attendanceFilter).lean<IAttendance[]>(),
       Event.find({ group: leader.group._id }).lean(),
@@ -106,25 +65,16 @@ export async function GET(request: Request) {
         .lean<IUser[]>()
     ]);
 
-    // ✅ Format members
-    const members: Member[] = rawMembers.map(member => ({
-      _id: member._id,
-      name: member.name,
-      email: member.email,
-      phone: member.phone,
-    }));
+    // 6. Process Member Attendance
+    const memberStats = new Map<string, { count: number; lastDate: Date | null }>(
+      rawMembers.map(m => [m._id.toString(), { count: 0, lastDate: null }])
+    );
 
-    // ✅ Initialize attendance map
-    const memberStats = new Map<string, { count: number; lastDate: Date | null }>();
-    members.forEach(m => memberStats.set(m._id.toString(), { count: 0, lastDate: null }));
-
-    // ✅ Populate attendance stats
     for (const record of attendanceRecords) {
       for (const memberId of record.presentMembers) {
-        const id = memberId.toString();
-        const stats = memberStats.get(id);
+        const stats = memberStats.get(memberId.toString());
         if (stats) {
-          stats.count += 1;
+          stats.count++;
           if (!stats.lastDate || record.date > stats.lastDate) {
             stats.lastDate = record.date;
           }
@@ -132,35 +82,36 @@ export async function GET(request: Request) {
       }
     }
 
-    // ✅ Final enhanced member list
-    const enhancedMembers: EnhancedMember[] = members.map(m => {
-      const data = memberStats.get(m._id.toString());
-      const attendanceCount = data?.count ?? 0;
-      const lastAttendanceDate = data?.lastDate ?? null;
-
-      const rating: EnhancedMember['rating'] =
-        attendanceCount > 10 ? 'Excellent' :
-        attendanceCount > 5 ? 'Average' : 'Poor';
-
+    // 7. Create Enhanced Members
+    const enhancedMembers: EnhancedMember[] = rawMembers.map(member => {
+      const stats = memberStats.get(member._id.toString())!;
       return {
-        ...m,
-        attendanceCount,
-        lastAttendanceDate,
-        rating,
+        _id: member._id,
+        name: member.name,
+        email: member.email,
+        phone: member.phone,
+        attendanceCount: stats.count,
+        lastAttendanceDate: stats.lastDate,
+        rating: stats.count > 10 ? 'Excellent' : stats.count > 5 ? 'Average' : 'Poor'
       };
     });
 
+    // 8. Return Secure Response
     return NextResponse.json({
       group: {
         _id: leader.group._id.toString(),
-        name: leader.group.name,
+        name: leader.group.name
       },
       events,
       members: enhancedMembers,
-      attendanceRecords,
+      attendanceRecords
     });
+
   } catch (error) {
-    console.error('Error fetching leader dashboard data:', error);
-    return NextResponse.json({ error: 'Failed to fetch data', details: error }, { status: 500 });
+    console.error('Leader API Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }
