@@ -1,47 +1,51 @@
-// app/api/leader/route.ts
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
-import { Group } from '@/lib/models/Group'; // Now properly used
 import { Attendance } from '@/lib/models/Attendance';
+import Event from '@/lib/models/Event';
+import Group from '@/lib/models/Group'; 
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import mongoose, { FilterQuery } from 'mongoose';
+import { IAttendance, IUser, IGroup } from '@/lib/models';
 
-// ... (keep your existing interfaces)
+interface EnhancedMember {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  phone?: string;
+  attendanceCount: number;
+  lastAttendanceDate: Date | null;
+  rating: 'Excellent' | 'Average' | 'Poor';
+}
 
 export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // Authentication & get leader
+    // 1. Strict Authentication
     const { user } = await requireSessionAndRoles(request, ['leader']);
-    const leader = await User.findById(user.id).populate<{ group: InstanceType<typeof Group> }>('group');
-    
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
     if (!leader?.group) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
-    // Get the full group document with members
-    const group = await Group.findById(leader.group._id)
-      .populate('members', 'name email phone')
-      .populate('leader', 'name email');
+    // 3. Fetch Members
+    const members = await User.find({ group: leader.group._id, role: 'member' })
+      .select('name email phone')
+      .lean<IUser []>();
 
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
-    }
-
-    // Rest of your existing data fetching logic
-    const { searchParams } = new URL(request.url);
-    // ... (keep your existing filter logic)
-
+    // 4. Return Members
     return NextResponse.json({
       group: {
-        _id: group._id.toString(),
-        name: group.name,
-        members: group.members, // Now using actual group members
-        leader: group.leader
+        _id: leader.group._id.toString(),
+        name: leader.group.name
       },
-      // ... rest of your response
+      members,
     });
 
   } catch (error) {
@@ -53,78 +57,129 @@ export async function GET(request: Request) {
   }
 }
 
-// Add member to group
+// POST: Add Member
 export async function POST(request: Request) {
   try {
     await dbConnect();
     const { user } = await requireSessionAndRoles(request, ['leader']);
-    
-    // Get leader's group
-    const leader = await User.findById(user.id).populate('group');
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { name, email, phone } = await request.json();
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+
     if (!leader?.group) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
-    const { memberId } = await request.json();
-    if (!mongoose.Types.ObjectId.isValid(memberId)) {
-      return NextResponse.json({ error: 'Invalid member ID' }, { status: 400 });
-    }
-
-    // Add member to group
-    const updatedGroup = await Group.findByIdAndUpdate(
-      leader.group._id,
-      { $addToSet: { members: memberId } },
-      { new: true, runValidators: true }
-    ).populate('members', 'name email');
-
-    return NextResponse.json({
-      message: 'Member added successfully',
-      group: updatedGroup
+    const newMember = new User({
+      name,
+      email,
+      phone,
+      group: leader.group._id,
+      role: 'member'
     });
 
+    await newMember.save();
+    return NextResponse.json({ message: 'Member added successfully', member: newMember });
+
   } catch (error) {
-    console.error('Add member error:', error);
+    console.error('Add Member Error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to add member' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
 }
 
-// Remove member from group
+// DELETE: Remove Member
 export async function DELETE(request: Request) {
   try {
     await dbConnect();
     const { user } = await requireSessionAndRoles(request, ['leader']);
-    
-    const leader = await User.findById(user.id).populate('group');
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { memberId } = await request.json();
-    if (!mongoose.Types.ObjectId.isValid(memberId)) {
-      return NextResponse.json({ error: 'Invalid member ID' }, { status: 400 });
-    }
-
-    // Remove member from group
-    const updatedGroup = await Group.findByIdAndUpdate(
-      leader.group._id,
-      { $pull: { members: memberId } },
-      { new: true }
-    ).populate('members', 'name email');
-
-    return NextResponse.json({
-      message: 'Member removed successfully',
-      group: updatedGroup
-    });
+    await User.findByIdAndDelete(memberId);
+    return NextResponse.json({ message: 'Member deleted successfully' });
 
   } catch (error) {
-    console.error('Remove member error:', error);
+    console.error('Delete Member Error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to remove member' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
 }
 
+// POST: Create Event
+export async function createEvent(request: Request) {
+  try {
+    await dbConnect();
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { name, date } = await request.json();
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    const newEvent = new Event({
+      name,
+      date,
+      group: leader.group._id
+    });
+
+    await newEvent.save();
+    return NextResponse.json({ message: 'Event created successfully', event: newEvent });
+
+  } catch (error) {
+    console.error('Create Event Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: Mark Attendance
+export async function markAttendance(request: Request) {
+  try {
+    await dbConnect();
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { eventId, presentMembers } = await request.json();
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    const attendanceRecord = new Attendance({
+      event: eventId,
+      group: leader.group._id,
+      date: new Date(),
+      presentMembers
+    });
+
+    await attendanceRecord.save();
+    return NextResponse.json({ message: 'Attendance marked successfully', attendance: attendanceRecord });
+
+  } catch (error) {
+    console.error('Mark Attendance Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
