@@ -37,9 +37,11 @@ export async function GET(request: Request) {
 
     // 3. Parse and Validate Filters
     const { searchParams } = new URL(request.url);
+    const groupId = searchParams.get('groupId');
     const eventId = searchParams.get('eventId');
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
+
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
