@@ -6,7 +6,7 @@ import { User } from "@/lib/models/User";
 import {  IGroup } from '@/lib/models';
 
 export async function POST(req: NextRequest) {
-  const auth = await requireSessionAndRoles(req, ["leader"]);
+  const {user} = await requireSessionAndRoles(req, ["leader"]);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { title, description, date } = await req.json();
