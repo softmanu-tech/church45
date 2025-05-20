@@ -1,185 +1,111 @@
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import { User } from '@/lib/models/User';
-import { Attendance } from '@/lib/models/Attendance';
-import Event from '@/lib/models/Event';
-import Group from '@/lib/models/Group'; 
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
-import mongoose, { FilterQuery } from 'mongoose';
-import { IAttendance, IUser, IGroup } from '@/lib/models';
+import Event from "@/lib/models/Event";
+import { User } from "@/lib/models/User";
+import { Group } from "@/lib/models/Group";
+import Member from "@/lib/models/Member";
+import mongoose from "mongoose";
 
-interface EnhancedMember {
-  _id: mongoose.Types.ObjectId;
-  name: string;
-  email: string;
-  phone?: string;
-  attendanceCount: number;
-  lastAttendanceDate: Date | null;
-  rating: 'Excellent' | 'Average' | 'Poor';
-}
+// Create Event
+export async function createEvent(req: NextRequest) {
+  const { user } = await requireSessionAndRoles(req, ["leader"]);
+  if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-export async function GET(request: Request) {
+  const { title, description, date } = await req.json();
+
   try {
     await dbConnect();
 
-    // 1. Strict Authentication
-    const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const leader = await User.findById(user.id).populate("group");
+    if (!leader || !leader.group) {
+      return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }
 
-    // 2. Get Leader with Group
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    const event = new Event({
+      title,
+      description,
+      date: new Date(date),
+      group: leader.group._id,
+    });
+
+    await event.save();
+
+    return NextResponse.json({ message: "Event created successfully", event });
+  } catch (error) {
+    console.error("Error creating event:", error);
+    return NextResponse.json({ error: "Failed to create event" }, { status: 500 });
+  }
+}
+
+// Mark Attendance
+export async function markAttendance(req: NextRequest) {
+  try {
+    const { user } = await requireSessionAndRoles(req, ["leader"]);
+    const leaderId = user.id;
+
+    await dbConnect();
+
+    const { eventId, memberId, attended } = await req.json();
+
+    if (
+      !mongoose.Types.ObjectId.isValid(eventId) ||
+      !mongoose.Types.ObjectId.isValid(memberId)
+    ) {
+      return NextResponse.json({ error: "Invalid ID format" }, { status: 400 });
     }
 
-    // 3. Fetch Members
-    const members = await User.find({ group: leader.group._id, role: 'member' })
-      .select('name email phone')
-      .lean<IUser []>();
+    const group = await Group.findOne({ leader: leaderId });
+    if (!group) {
+      return NextResponse.json({ error: "Group not found" }, { status: 404 });
+    }
 
-    // 4. Return Members
+    const event = await Event.findOne({ _id: eventId, group: group._id });
+    if (!event) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    const member = await Member.findOne({ _id: memberId, group: group._id });
+    if (!member) {
+      return NextResponse.json({ error: "Member not found" }, { status: 404 });
+    }
+
+    const memberObjId = new mongoose.Types.ObjectId(memberId);
+
+    if (!event.attendance) event.attendance = [];
+
+    if (attended) {
+      const alreadyMarked = event.attendance.some((id) => id.equals(memberObjId));
+      if (!alreadyMarked) {
+        event.attendance.push(memberObjId);
+      }
+    } else {
+      event.attendance = event.attendance.filter(
+        (id) => !id.equals(memberObjId)
+      );
+    }
+
+    await event.save();
+
     return NextResponse.json({
-      group: {
-        _id: leader.group._id.toString(),
-        name: leader.group.name
-      },
-      members,
+      message: "Attendance updated successfully",
+      attendance: event.attendance,
     });
-
-  } catch (error) {
-    console.error('Leader API Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
+  } catch (err: any) {
+    console.error("Error marking attendance:", err);
+    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
   }
 }
 
-// POST: Add Member
-export async function POST(request: Request) {
-  try {
-    await dbConnect();
-    const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+// Main handler for the route
+export async function POST(req: NextRequest) {
+  const { action } = await req.json(); // Expecting an action to determine what to do
 
-    const { name, email, phone } = await request.json();
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
-    }
-
-    const newMember = new User({
-      name,
-      email,
-      phone,
-      group: leader.group._id,
-      role: 'member'
-    });
-
-    await newMember.save();
-    return NextResponse.json({ message: 'Member added successfully', member: newMember });
-
-  } catch (error) {
-    console.error('Add Member Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE: Remove Member
-export async function DELETE(request: Request) {
-  try {
-    await dbConnect();
-    const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { memberId } = await request.json();
-    await User.findByIdAndDelete(memberId);
-    return NextResponse.json({ message: 'Member deleted successfully' });
-
-  } catch (error) {
-    console.error('Delete Member Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
-
-// POST: Create Event
-export async function createEvent(request: Request) {
-  try {
-    await dbConnect();
-    const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { name, date } = await request.json();
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
-    }
-
-    const newEvent = new Event({
-      name,
-      date,
-      group: leader.group._id
-    });
-
-    await newEvent.save();
-    return NextResponse.json({ message: 'Event created successfully', event: newEvent });
-
-  } catch (error) {
-    console.error('Create Event Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
-
-// POST: Mark Attendance
-export async function markAttendance(request: Request) {
-  try {
-    await dbConnect();
-    const { user } = await requireSessionAndRoles(request, ['leader']);
-    if (!user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { eventId, presentMembers } = await request.json();
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
-    }
-
-    const attendanceRecord = new Attendance({
-      event: eventId,
-      group: leader.group._id,
-      date: new Date(),
-      presentMembers
-    });
-
-    await attendanceRecord.save();
-    return NextResponse.json({ message: 'Attendance marked successfully', attendance: attendanceRecord });
-
-  } catch (error) {
-    console.error('Mark Attendance Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal Server Error' },
-      { status: 500 }
-    );
+  if (action === "createEvent") {
+    return createEvent(req);
+  } else if (action === "markAttendance") {
+    return markAttendance(req);
+  } else {
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 }
