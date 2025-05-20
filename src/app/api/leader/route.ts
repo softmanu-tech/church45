@@ -171,3 +171,47 @@ export async function POST(request: Request) {
     );
   }
 }
+// PUT: Update Member
+export async function PUT(request: Request) {
+  try {
+    await dbConnect();
+
+    // 1. Strict Authentication
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    // 3. Parse and Validate Request Body
+    const { memberId, name, email, phone } = await request.json();
+    if (!memberId || !name || !email) {
+      return NextResponse.json({ error: 'Member ID, name, and email are required' }, { status: 400 });
+    }
+
+    // 4. Find and Update Member
+    const updatedMember = await User.findOneAndUpdate(
+      { _id: memberId, group: leader.group._id },
+      { name, email, phone },
+      { new: true }
+    );
+
+    if (!updatedMember) {
+      return NextResponse.json({ error: 'Member not found or not in your group' }, { status: 404 });
+    }
+
+    // 5. Return Success Response
+    return NextResponse.json({ message: 'Member updated successfully', member: updatedMember });
+
+  } catch (error) {
+    console.error('Leader API Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
