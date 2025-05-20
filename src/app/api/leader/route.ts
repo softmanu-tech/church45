@@ -7,7 +7,7 @@ import Event from '@/lib/models/Event';
 import { Group } from '@/lib/models/Group';
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import mongoose, { FilterQuery } from 'mongoose';
-import type { IAttendance, IUser, IGroup } from '@/lib/models';
+import { IAttendance, IUser, IGroup } from '@/lib/models';
 
 interface EnhancedMember {
   _id: mongoose.Types.ObjectId;
@@ -23,27 +23,34 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
 
-    // 1. Authentication and Leader Validation
+    // 1. Strict Authentication
     const { user } = await requireSessionAndRoles(request, ['leader']);
-    const leader = await User.findById(user.id)
-      .populate<{ group: InstanceType<typeof Group> }>('group')
-      .lean();
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
     if (!leader?.group) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
-    // 2. Parse and Validate Query Parameters
+    // 3. Parse and Validate Filters
     const { searchParams } = new URL(request.url);
+    
     const eventId = searchParams.get('eventId');
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
 
-    if (eventId && !mongoose.isValidObjectId(eventId)) {
+    const group = await Group.findById(leader.group._id);
+    
+
+
+    if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
     }
 
-    // 3. Build Attendance Filters
+    // 4. Build Secure Filters
     const attendanceFilter: FilterQuery<IAttendance> = {
       group: leader.group._id,
       ...(eventId && { event: new mongoose.Types.ObjectId(eventId) }),
@@ -55,22 +62,22 @@ export async function GET(request: Request) {
       }
     };
 
-    // 4. Fetch Data in Parallel
+    // 5. Fetch Data
     const [attendanceRecords, events, rawMembers] = await Promise.all([
-      Attendance.find(attendanceFilter).lean(),
+      Attendance.find(attendanceFilter).lean<IAttendance[]>(),
       Event.find({ group: leader.group._id }).lean(),
       User.find({ group: leader.group._id, role: 'member' })
         .select('name email phone')
-        .lean()
+        .lean<IUser[]>()
     ]);
 
-    // 5. Calculate Member Attendance Stats
+    // 6. Process Member Attendance
     const memberStats = new Map<string, { count: number; lastDate: Date | null }>(
       rawMembers.map(m => [m._id.toString(), { count: 0, lastDate: null }])
     );
 
-    attendanceRecords.forEach(record => {
-      record.presentMembers.forEach(memberId => {
+    for (const record of attendanceRecords) {
+      for (const memberId of record.presentMembers) {
         const stats = memberStats.get(memberId.toString());
         if (stats) {
           stats.count++;
@@ -78,10 +85,10 @@ export async function GET(request: Request) {
             stats.lastDate = record.date;
           }
         }
-      });
-    });
+      }
+    }
 
-    // 6. Create Enhanced Member Data
+    // 7. Create Enhanced Members
     const enhancedMembers: EnhancedMember[] = rawMembers.map(member => {
       const stats = memberStats.get(member._id.toString())!;
       return {
@@ -95,18 +102,11 @@ export async function GET(request: Request) {
       };
     });
 
-    // 7. Get Full Group Details
-    const group = await Group.findById(leader.group._id)
-      .populate('members', 'name email phone')
-      .populate('leader', 'name email')
-      .lean();
-
+    // 8. Return Secure Response
     return NextResponse.json({
       group: {
-        _id: group?._id.toString() || '',
-        name: group?.name || '',
-        members: group?.members || [],
-        leader: group?.leader || null
+        _id: leader.group._id.toString(),
+        name: leader.group.name
       },
       events,
       members: enhancedMembers,
