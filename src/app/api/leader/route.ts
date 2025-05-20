@@ -4,10 +4,10 @@ import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
 import { Attendance } from '@/lib/models/Attendance';
 import Event from '@/lib/models/Event';
+import { Group } from '@/lib/models/Group'; // Import Group model
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import mongoose, { FilterQuery } from 'mongoose';
 import { IAttendance, IUser, IGroup } from '@/lib/models';
-import { Group } from '@/lib/models/Group';
 
 interface EnhancedMember {
   _id: mongoose.Types.ObjectId;
@@ -35,15 +35,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
+    // Debugging: Log the leader object
+    console.log('Leader:', leader);
+
     // 3. Parse and Validate Filters
     const { searchParams } = new URL(request.url);
-    
     const eventId = searchParams.get('eventId');
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
-
-    
-
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
       return NextResponse.json({ error: 'Invalid event ID format' }, { status: 400 });
