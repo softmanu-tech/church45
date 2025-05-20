@@ -292,14 +292,14 @@ export async function createEvent(request: Request) {
 }
 
 // Mark Attendance
-export async function markAttendance(req: NextRequest) {
+export async function markAttendance(request: Request) {
   try {
-    const { user } = await requireSessionAndRoles(req, ["leader"]);
+    const { user } = await requireSessionAndRoles(request, ["leader"]);
     const leaderId = user.id;
 
     await dbConnect();
 
-    const { eventId, memberId, attended } = await req.json();
+    const { eventId, memberId, attended } = await request.json();
 
     if (
       !mongoose.Types.ObjectId.isValid(eventId) ||
@@ -351,7 +351,7 @@ export async function markAttendance(req: NextRequest) {
 }
 
 // Main handler for the route
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const { action } = await req.json(); // Expecting an action to determine what to do
 
   if (action === "createEvent") {
