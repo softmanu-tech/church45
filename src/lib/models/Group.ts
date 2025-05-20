@@ -20,3 +20,7 @@ const GroupSchema: Schema<IGroup> = new Schema(
 
 const Group: Model<IGroup> = mongoose.models.Group || mongoose.model<IGroup>("Group", GroupSchema);
 export default Group;
+
+// src/lib/models/Group.ts
+// Add this export at the end:
+export type { IGroup };
