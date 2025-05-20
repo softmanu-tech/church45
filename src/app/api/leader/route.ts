@@ -217,3 +217,46 @@ export async function PUT(request: Request) {
   }
 }
 // DELETE: Remove Member
+export async function DELETE(request: Request) {
+  try {
+    await dbConnect();
+
+    // 1. Strict Authentication
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    // 3. Parse and Validate Request Body
+    const { memberId } = await request.json();
+    if (!memberId) {
+      return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
+    }
+
+    // 4. Find and Delete Member
+    const deletedMember = await User.findOneAndDelete({
+      _id: memberId,
+      group: leader.group._id
+    });
+
+    if (!deletedMember) {
+      return NextResponse.json({ error: 'Member not found or not in your group' }, { status: 404 });
+    }
+
+    // 5. Return Success Response
+    return NextResponse.json({ message: 'Member removed successfully' });
+
+  } catch (error) {
+    console.error('Leader API Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
