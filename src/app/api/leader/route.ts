@@ -43,8 +43,10 @@ export async function GET(request: Request) {
     const toDate = searchParams.get('toDate');
 
     const group = await Group.findById(leader.group._id);
-    .populate('members', 'name email phone');
-    
+      .populate('members', 'name email phone');
+      .populate('leader', 'name email');
+
+      
 
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
