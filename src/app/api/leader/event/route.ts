@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect();
 
-    const leader = await User.findById(user.id).populate("group");
+    const leader = await User.findById(user.id).populate<{group: IGroup}>("group");
     if (!leader || !leader.group) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }
