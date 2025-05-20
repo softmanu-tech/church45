@@ -261,8 +261,8 @@ export async function DELETE(request: Request) {
   }
 }
 // Create Event
-export async function createEvent(req: NextRequest) {
-  const { user } = await requireSessionAndRoles(req, ["leader"]);
+export async function createEvent(request: Request) {
+  const { user } = await requireSessionAndRoles(request, ["leader"]);
   if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { title, description, date } = await req.json();
