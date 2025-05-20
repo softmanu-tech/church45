@@ -127,3 +127,47 @@ export async function GET(request: Request) {
 }
 
 // POST: Add Member
+export async function POST(request: Request) {
+  try {
+    await dbConnect();
+
+    // 1. Strict Authentication
+    const { user } = await requireSessionAndRoles(request, ['leader']);
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 2. Get Leader with Group
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+    }
+
+    // 3. Parse and Validate Request Body
+    const { name, email, phone } = await request.json();
+    if (!name || !email) {
+      return NextResponse.json({ error: 'Name and email are required' }, { status: 400 });
+    }
+
+    // 4. Create New Member
+    const newMember = new User({
+      name,
+      email,
+      phone,
+      role: 'member',
+      group: leader.group._id
+    });
+
+    await newMember.save();
+
+    // 5. Return Success Response
+    return NextResponse.json({ message: 'Member added successfully', member: newMember });
+
+  } catch (error) {
+    console.error('Leader API Error:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
