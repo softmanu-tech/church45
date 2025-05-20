@@ -6,6 +6,7 @@ import { Attendance } from '@/lib/models/Attendance';
 import Event from '@/lib/models/Event';
 import { Group } from '@/lib/models/Group'; 
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
+
 import mongoose, { FilterQuery } from 'mongoose';
 import { IAttendance, IUser, IGroup } from '@/lib/models';
 

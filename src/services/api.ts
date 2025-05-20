@@ -4,7 +4,6 @@ import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import Event from "@/lib/models/Event";
 import { User } from "@/lib/models/User";
 import { Group } from "@/lib/models/Group";
-import Member from "@/lib/models/Member";
 import mongoose from "mongoose";
 
 // Create Event
