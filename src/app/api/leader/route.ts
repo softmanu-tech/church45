@@ -351,13 +351,13 @@ export async function markAttendance(request: Request) {
 }
 
 // Main handler for the route
-export async function POST(req: Request) {
-  const { action } = await req.json(); // Expecting an action to determine what to do
+export async function POST(request: Request) {
+  const { action } = await request.json(); // Expecting an action to determine what to do
 
   if (action === "createEvent") {
-    return createEvent(req);
+    return createEvent(request);
   } else if (action === "markAttendance") {
-    return markAttendance(req);
+    return markAttendance(request);
   } else {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
