@@ -5,7 +5,7 @@ import  Event  from "@/lib/models/Event";
 import { User } from "@/lib/models/User";
 
 export async function POST(req: NextRequest) {
-  const auth = await requireSessionAndRoles(req, "leader");
+  const auth = await requireSessionAndRoles(req, ["leader"]);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { title, description, date } = await req.json();
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     await dbConnect();
 
-    const leader = await User.findById(auth.session.user.id).populate("group");
+    const leader = await User.findById(user.id).populate("group");
     if (!leader || !leader.group) {
       return NextResponse.json({ error: "Group not found" }, { status: 404 });
     }
