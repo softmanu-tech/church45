@@ -54,6 +54,10 @@ export async function GET(request: Request) {
     const fromDate = url.searchParams.get('fromDate');
     const toDate = url.searchParams.get('toDate');
 
+    const data = await fetchLeaderData({
+      groupId
+    })
+
     // ✅ Find Leader & Validate Group
     const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
     if (!leader || !leader.group) {
