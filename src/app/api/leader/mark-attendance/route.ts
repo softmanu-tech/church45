@@ -60,6 +60,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     const status = err.name === "Forbidden" ? 403 : 401;
-    return NextResponse.json({ error:}, { status });
+    return NextResponse.json({ err, "wrong":}, { status });
   }
 }
