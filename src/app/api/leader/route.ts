@@ -35,6 +35,12 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
+    // Optionally, fetch the group details if needed
+    const groupDetails = await Group.findById(leader.group._id);
+    if (!groupDetails) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    }
+
     // Debugging: Log the leader object
     console.log('Leader:', leader);
 
