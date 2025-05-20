@@ -129,4 +129,3 @@ const AttendanceModel = (models.Attendance ||
 export const Attendance = AttendanceModel;
 // src/lib/models/Attendance.ts
 // Keep your existing code but add this at the end:
-export type { IAttendance, AttendanceModel };
