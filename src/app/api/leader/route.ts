@@ -42,7 +42,9 @@ export async function GET(request: Request) {
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
 
-    const group = awaGroup;
+    const group = await Group.findById(leader.group._id);
+    .populate('members', 'name email phone');
+    
 
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
