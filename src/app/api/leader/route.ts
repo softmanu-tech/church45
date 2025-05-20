@@ -59,7 +59,9 @@ export async function GET(request: Request) {
       eventId,
       fromDate,
       toDate,
-    })
+    });
+    return NextResponse.json(data);
+    
 
     // ✅ Find Leader & Validate Group
     const leader = await User.findById(leaderId).populate<{ group: IGroup }>('group');
