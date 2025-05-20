@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     const fromDate = searchParams.get('fromDate');
     const toDate = searchParams.get('toDate');
 
-    const _ = Group;
+    const group = awaGroup;
 
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
