@@ -128,10 +128,3 @@ export async function DELETE(request: Request) {
   }
 }
 
-// 2. Get Leader with Group
-const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-if (!leader?.group) {
-  return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
-}
-
-
