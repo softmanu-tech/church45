@@ -21,6 +21,10 @@ export async function middleware(request: NextRequest) {
   const leaderDashboardUrl = new URL('/dashboard/leader', request.url);
   const bishopDashboardUrl = new URL('/dashboard/bishop', request.url);
 
+  if (!token) {
+    return NextResponse.redirect(loginUrl);
+  }
+
   try {
     // Get token from cookie
     const cookie = request.cookies.get('auth_token')?.value;
