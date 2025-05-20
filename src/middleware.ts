@@ -64,7 +64,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/bishop/:path*',
-    '/leader/:path*',
     '/api/bishop/:path*',
     '/api/leader/:path*',
   ],
