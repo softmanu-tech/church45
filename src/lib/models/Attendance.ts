@@ -127,3 +127,6 @@ const AttendanceModel = (models.Attendance ||
     mongoose.model<IAttendance, AttendanceModel>('Attendance', AttendanceSchema)) as AttendanceModel;
 
 export const Attendance = AttendanceModel;
+// src/lib/models/Attendance.ts
+// Keep your existing code but add this at the end:
+export type { IAttendance, AttendanceModel };
