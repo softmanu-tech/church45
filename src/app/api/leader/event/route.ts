@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import  Event  from "@/lib/models/Event";
 import { User } from "@/lib/models/User";
+import {  IGroup } from '@/lib/models';
 
 export async function POST(req: NextRequest) {
   const auth = await requireSessionAndRoles(req, ["leader"]);
