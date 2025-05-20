@@ -49,7 +49,14 @@ export async function GET(request: Request) {
     if (!group) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
-    return NextResponse.json({})
+    return NextResponse.json({
+      group: {
+        _id: group._id.toString(),
+        name: group.name,
+        members: group.members,
+        leader: group.leader
+      }
+    });
 
 
     if (eventId && !mongoose.Types.ObjectId.isValid(eventId)) {
