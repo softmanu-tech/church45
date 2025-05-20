@@ -22,10 +22,12 @@ export async function middleware(request: NextRequest) {
   const bishopDashboardUrl = new URL('/dashboard/bishop', request.url);
 
   if (!token) {
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect('/login');
   }
 
   try {
+
+    
     // Get token from cookie
     const cookie = request.cookies.get('auth_token')?.value;
 
