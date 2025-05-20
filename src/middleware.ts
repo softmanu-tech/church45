@@ -15,6 +15,7 @@ interface AuthToken {
 }
 
 export async function middleware(request: NextRequest) {
+  const token = request.cookies.get('auth_token')?.value;
   const { pathname } = request.nextUrl;
   const loginUrl = new URL('/login', request.url);
   const leaderDashboardUrl = new URL('/dashboard/leader', request.url);
