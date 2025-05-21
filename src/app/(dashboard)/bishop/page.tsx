@@ -291,7 +291,7 @@ export default function BishopDashboard() {
 
         const interval = setInterval(fetchDashboardData, 30000)
         return () => clearInterval(interval)
-    }, [fetchDashboardData])
+    }, [fe])
 
     const formatDate = (dateStr: string) => {
         try {
