@@ -9,7 +9,7 @@ export async function POST(request: Request) {
 try {
     await dbConnect()
 
-    const group = await Group.findById(group._id)
+    const group = await Group.findById(groupId)
         if (!group) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
         }
