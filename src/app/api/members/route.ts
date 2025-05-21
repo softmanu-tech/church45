@@ -20,7 +20,15 @@ export async function POST(request: Request) {
         )
     }
 
-    
+    const newMember = new User({
+        name,
+        email,
+        phone,
+        department,
+        location,
+        group: groupId,
+        role
+    })
 
     await dbConnect()
 
