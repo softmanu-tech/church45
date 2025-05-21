@@ -439,6 +439,7 @@ export default function LeaderDashboard() {
       {/** openAddMembere*/}
       { openAddMember &&  (
         <CreateMemberForm
+          groupId = 
         
         />
 
