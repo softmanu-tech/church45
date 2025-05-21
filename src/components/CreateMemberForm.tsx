@@ -87,15 +87,14 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
           className="w-full border rounded px-3 py-2"
-          required
         />
       </div>
       <div>
-        <label className="block text-sm font-medium">Phone</label>
+        <label className="block text-sm font-medium">Location</label>
         <input
           type="text"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
           className="w-full border rounded px-3 py-2"
           required
         />
