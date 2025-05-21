@@ -9,7 +9,7 @@ export async function POST(request: Request) {
 try {
     await dbConnect()
 
-    const group = await Group.findById(groupId)
+    const group = await Group.findById(group._id)
         if (!group) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
         }
@@ -58,7 +58,6 @@ try {
         phone: newMember.phone
     })
 
-    return NextResponse.json({ message: 'Member added successfully', member: newMember });
 } catch (error) {
     
 }
