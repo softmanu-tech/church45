@@ -11,7 +11,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, email, phone, groupId, role } = await request.json()
+    const { name, email, phone, department, location, groupId, role } = await request.json()
 
     if (!name || !email || !groupId || !role) {
         return NextResponse.json(
