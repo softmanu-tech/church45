@@ -2,13 +2,18 @@
 import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/dbConnect'
 import { User } from '@/lib/models/User'
-import { Group } from '@/lib/models/Group'
+import { Group, IGroup } from '@/lib/models/Group'
 import { requireSessionAndRoles } from '@/lib/authMiddleware'
 
 export async function POST(request: Request) {
     const {user} = await requireSessionAndRoles(request, ['leader'])
     if (!user?.id){
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+    if (!leader?.group) {
+      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
     const { name, email, phone, department, location, groupId, role } = await request.json()
