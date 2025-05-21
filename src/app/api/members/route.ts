@@ -1,6 +1,5 @@
 // src/app/api/members/route.ts
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import dbConnect from '@/lib/dbConnect'
 import { User } from '@/lib/models/User'
 import { Group } from '@/lib/models/Group'
