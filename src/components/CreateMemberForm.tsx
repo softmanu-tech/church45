@@ -42,6 +42,7 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
       setLocation("")
       onMemberCreated()
     } catch (error) {
+      
       console.error("Error creating member:", error)
     } finally {
       setLoading(false)
