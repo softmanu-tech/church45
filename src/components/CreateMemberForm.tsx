@@ -42,7 +42,7 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
       setLocation("")
       onMemberCreated()
     } catch (error) {
-      
+      toast.error(error instanceof Error ? error.message : 'Failed to create member');
       console.error("Error creating member:", error)
     } finally {
       setLoading(false)
