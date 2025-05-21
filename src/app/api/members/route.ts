@@ -8,7 +8,9 @@ import { requireSessionAndRoles } from '@/lib/authMiddleware'
 
 export async function POST(request: Request) {
     const {user} = await requireSessionAndRoles(request, ['leader'])
+    if (!user?.id){
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const { name, email, phone, groupId, role } = await request.json()
 
