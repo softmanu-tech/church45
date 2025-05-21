@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
+import Link from 'next/link';
 
 interface Member {
   _id: string;
@@ -223,6 +224,20 @@ export default function LeaderDashboard() {
       key="leader-dashboard"  
         className="p-4 max-w-7xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold mb-4">{data.group.name} -  Leader Dashboard</h1>
+      <motion.div variants={fadeIn("up", "spring", 0.2, 1)}>
+                <div className="flex justify-between items-center">
+                    <h1 className="text-3xl font-bold text-white">Bishop Dashboard</h1>
+                    <div className="space-x-2">
+                        <Link href="/bishop/leaders" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
+                            Manage Leaders
+                        </Link>
+                        <Link href="/bishop/groups" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
+                            Manage Groups
+                        </Link>
+                    </div>
+                </div>
+            </motion.div>
+
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
