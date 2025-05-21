@@ -72,6 +72,7 @@ export default function LeaderDashboard() {
   const [data, setData] = useState<DashboardResponse| null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openAddMember, setOpenAddMember] = useState(false);
 
   // Filtering and pagination state
   const [searchTerm, setSearchTerm] = useState('');
