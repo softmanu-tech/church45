@@ -211,7 +211,11 @@ export default function LeaderDashboard() {
 
   return (
     <motion.div 
-        initial=
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      key="leader-dashboard"  
         className="p-4 max-w-7xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold mb-4">{data.group.name} - Leader Dashboard</h1>
 
