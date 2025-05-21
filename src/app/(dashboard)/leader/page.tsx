@@ -222,7 +222,7 @@ export default function LeaderDashboard() {
       transition={{ duration: 0.3 }}
       key="leader-dashboard"  
         className="p-4 max-w-7xl mx-auto space-y-8">
-      <h1 className="text-3xl font-bold mb-4">{data.group.name} - {data.leader?.name} - Leader Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-4">{data.group.name} -  Leader Dashboard</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
