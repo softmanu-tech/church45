@@ -26,8 +26,8 @@ export async function POST(request: Request) {
         phone,
         department,
         location,
-        group: groupId,
-        role
+        group: leader.group._id,
+        role: 'member'
     })
 
     await dbConnect()
