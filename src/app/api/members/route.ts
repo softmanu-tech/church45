@@ -4,12 +4,11 @@ import { getServerSession } from 'next-auth'
 import dbConnect from '@/lib/dbConnect'
 import { User } from '@/lib/models/User'
 import { Group } from '@/lib/models/Group'
+import { requireSessionAndRoles } from '@/lib/authMiddleware'
 
 export async function POST(request: Request) {
-    c
-    if (!session?.user?.id) {
+    const {user} = await requireSessionAndRoles(request, ['leader'])
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
 
     const { name, email, phone, groupId, role } = await request.json()
 
