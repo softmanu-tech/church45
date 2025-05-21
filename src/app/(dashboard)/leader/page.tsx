@@ -210,7 +210,8 @@ export default function LeaderDashboard() {
   }
 
   return (
-    <motion.div className="p-4 max-w-7xl mx-auto space-y-8">
+    <motion.div 
+        className="p-4 max-w-7xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold mb-4">{data.group.name} - Leader Dashboard</h1>
 
       {/* Filters */}
@@ -409,6 +410,6 @@ export default function LeaderDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
