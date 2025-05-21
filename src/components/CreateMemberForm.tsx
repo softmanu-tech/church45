@@ -80,6 +80,26 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
           required
         />
       </div>
+      <div>
+        <label className="block text-sm font-medium">Phone</label>
+        <input
+          type="text"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full border rounded px-3 py-2"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium">Phone</label>
+        <input
+          type="text"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full border rounded px-3 py-2"
+          required
+        />
+      </div>
       <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" disabled={loading}>
         {loading ? "Creating..." : "Create Member"}
       </button>
