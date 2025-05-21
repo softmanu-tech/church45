@@ -40,6 +40,17 @@ try {
 
     await newMember.save()
 
+    // Add member to group
+    group.members.push(newMember._id)
+    await group.save()
+
+    return NextResponse.json({
+        _id: newMember._id.toString(),
+        name: newMember.name,
+        email: newMember.email,
+        phone: newMember.phone
+    })
+
     return NextResponse.json({ message: 'Member added successfully', member: newMember });
 } catch (error) {
     
