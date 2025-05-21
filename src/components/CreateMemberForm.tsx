@@ -14,6 +14,8 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [department, setDepartment] = useState("")
+  const [location, setLocation] = useState("")
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,7 +28,7 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, phone, groupId }),
+        body: JSON.stringify({ name, email, phone, department, location, groupId }),
       })
 
       if (!res.ok) {
@@ -36,6 +38,8 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
       setName("")
       setEmail("")
       setPhone("")
+      setDepartment("")
+      setLocation("")
       onMemberCreated()
     } catch (error) {
       console.error("Error creating member:", error)
