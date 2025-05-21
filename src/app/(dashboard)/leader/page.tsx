@@ -438,7 +438,9 @@ export default function LeaderDashboard() {
       </div>
       {/** openAddMembere*/}
       { openAddMember &&  (
-        <CreateMemberForm/>
+        <CreateMemberForm
+        
+        />
 
       )}
     </motion.div>
