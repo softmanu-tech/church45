@@ -8,6 +8,8 @@ import { requireSessionAndRoles } from '@/lib/authMiddleware'
 export async function POST(request: Request) {
 try {
     await dbConnect()
+    const { name, email, phone, department, location, groupId, role } = await request.json()
+
 
     const group = await Group.findById(groupId)
         if (!group) {
@@ -26,7 +28,6 @@ try {
       return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
     }
 
-    const { name, email, phone, department, location, groupId, role } = await request.json()
 
     if (!name || !email || !groupId || !role || !department || !location) {
         return NextResponse.json(
