@@ -6,6 +6,9 @@ import { Group, IGroup } from '@/lib/models/Group'
 import { requireSessionAndRoles } from '@/lib/authMiddleware'
 
 export async function POST(request: Request) {
+try {
+    await dbConnect()
+
     const {user} = await requireSessionAndRoles(request, ['leader'])
     if (!user?.id){
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -36,6 +39,9 @@ export async function POST(request: Request) {
     })
 
     await newMember.save()
+} catch (error) {
+    
+}
 
     try {
         // Verify the group exists and the user is its leader
