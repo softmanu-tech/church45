@@ -39,6 +39,8 @@ try {
     })
 
     await newMember.save()
+
+    return NextResponse.json({ message: 'Member added successfully', member: newMember });
 } catch (error) {
     
 }
