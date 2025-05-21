@@ -230,7 +230,7 @@ export default function LeaderDashboard() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold text-white">{data.group.name} -  Leader Dashboard</h1>
                     <div className="space-x-2">
-                    <button className='border-2  border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all py-1 px-3 rounded-full' onClick={()=>setOpenUploadProduct(true)}>Add Member</button>
+                    <button className='border-2  border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all py-1 px-3 rounded-full' onClick={()=>setOpenAddMember(true)}>Add Member</button>
                         <Link href="/leader/events" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
                             Create Event
                         </Link>
