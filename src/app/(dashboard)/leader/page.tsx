@@ -28,6 +28,10 @@ interface Group {
   _id: string;
   name: string;
   leader: {
+    _id: string;
+    name: string;
+  } | null;
+  
 }
 
 export interface DashboardResponse {
