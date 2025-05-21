@@ -439,8 +439,11 @@ export default function LeaderDashboard() {
       {/** openAddMembere*/}
       { openAddMember &&  (
         <CreateMemberForm
-          groupId = 
-        
+        groupId={data.group._id} 
+        onMemberCreated={() => {
+          setOpenAddMember(false);
+          // Add logic to refresh member list
+        }}
         />
 
       )}
