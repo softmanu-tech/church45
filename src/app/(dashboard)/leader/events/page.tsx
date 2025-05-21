@@ -13,6 +13,7 @@ import {
   CartesianGrid,
 } from "recharts"
 import jsPDF from "jspdf"
+import { motion } from "framer-motion"
 
 interface EventType {
   _id: string
@@ -92,7 +93,7 @@ export default function BishopDashboard() {
       }
     }
     fetchEvents()
-  }, [page, limit, groupFilter, dateRange])
+  }, [page, limit, events, groupFilter, dateRange])
 
   // Sync URL params on state change
   useEffect(() => {
@@ -103,7 +104,7 @@ export default function BishopDashboard() {
     if (dateRange.startDate) params.set("startDate", dateRange.startDate)
     if (dateRange.endDate) params.set("endDate", dateRange.endDate)
     router.replace(`?${params.toString()}`, { scroll: false })
-  }, [page, limit, groupFilter, dateRange])
+  }, [page, limit, groupFilter,router, dateRange])
 
   // Export to PDF function
   function exportToPDF() {
@@ -130,7 +131,13 @@ export default function BishopDashboard() {
   }))
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      
+     className="p-4 max-w-7xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Bishop Dashboard</h1>
 
       {/* Filters */}
@@ -264,6 +271,6 @@ export default function BishopDashboard() {
           <p>No data for attendance chart</p>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
