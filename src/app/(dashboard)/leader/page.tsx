@@ -229,10 +229,10 @@ export default function LeaderDashboard() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-3xl font-bold text-white">{data.group.name} -  Leader Dashboard</h1>
                     <div className="space-x-2">
-                        <Link href="/leader/" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
+                        <Link href="/leader/members" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
                             Add Members
                         </Link>
-                        <Link href="/bishop/groups" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
+                        <Link href="/leader/events" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
                             Create Event
                         </Link>
                     </div>
