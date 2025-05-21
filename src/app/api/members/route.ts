@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         role: 'member'
     })
 
-    await dbConnect()
+    await newMember.save()
 
     try {
         // Verify the group exists and the user is its leader
