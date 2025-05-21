@@ -58,48 +58,7 @@ try {
         email: newMember.email,
         phone: newMember.phone
     })
-
-} catch (error) {
     
-}
-
-    try {
-        // Verify the group exists and the user is its leader
-        const group = await Group.findById(groupId)
-        if (!group) {
-            return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-        }
-
-        if (group.leader.toString() !== session.user.id) {
-            return NextResponse.json(
-                { error: 'Only the group leader can add members' },
-                { status: 403 }
-            )
-        }
-
-
-        // Create the member
-        const newMember = new User({
-            name,
-            email,
-            phone,
-            group: groupId,
-            role
-        })
-
-        await newMember.save()
-
-        // Add member to group
-        group.members.push(newMember._id)
-        await group.save()
-
-        return NextResponse.json({
-            _id: newMember._id.toString(),
-            name: newMember.name,
-            email: newMember.email,
-            phone: newMember.phone
-        })
-
     } catch (error) {
         console.error('Error adding member:', error)
         return NextResponse.json(
