@@ -13,12 +13,14 @@ export async function POST(request: Request) {
 
     const { name, email, phone, department, location, groupId, role } = await request.json()
 
-    if (!name || !email || !groupId || !role) {
+    if (!name || !email || !groupId || !role || !department || !location) {
         return NextResponse.json(
             { error: 'All fields are required' },
             { status: 400 }
         )
     }
+
+    
 
     await dbConnect()
 
