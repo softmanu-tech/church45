@@ -9,10 +9,17 @@ export async function POST(request: Request) {
 try {
     await dbConnect()
 
+    const group = await Group.findById(groupId)
+        if (!group) {
+            return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+        }
+
     const {user} = await requireSessionAndRoles(request, ['leader'])
     if (!user?.id){
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    
 
     const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
     if (!leader?.group) {
