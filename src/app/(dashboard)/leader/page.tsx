@@ -211,6 +211,7 @@ export default function LeaderDashboard() {
 
   return (
     <motion.div 
+        initial=
         className="p-4 max-w-7xl mx-auto space-y-8">
       <h1 className="text-3xl font-bold mb-4">{data.group.name} - Leader Dashboard</h1>
 
