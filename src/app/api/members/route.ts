@@ -41,7 +41,7 @@ try {
         phone,
         department,
         location,
-        group: leader.group._id,
+        group: groupId,
         role: 'member'
     })
 
