@@ -6,6 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import Link from 'next/link';
+import { fadeIn } from '@/lib/motion';
 
 interface Member {
   _id: string;
