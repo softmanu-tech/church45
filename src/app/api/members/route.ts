@@ -6,7 +6,7 @@ import { User } from '@/lib/models/User'
 import { Group } from '@/lib/models/Group'
 
 export async function POST(request: Request) {
-    const session = await getServerSession(authOptions)
+    c
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
