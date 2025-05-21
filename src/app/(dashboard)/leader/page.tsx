@@ -436,7 +436,9 @@ export default function LeaderDashboard() {
         </div>
       </div>
       {/** openAddMembere*/}
-      { openAddMember &&  }
+      { openAddMember &&  (
+        
+      )}
     </motion.div>
   );
 }
