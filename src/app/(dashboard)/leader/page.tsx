@@ -27,6 +27,7 @@ interface Event {
 interface Group {
   _id: string;
   name: string;
+  leader: {
 }
 
 export interface DashboardResponse {
