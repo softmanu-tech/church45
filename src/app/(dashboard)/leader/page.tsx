@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import Link from 'next/link';
 import { fadeIn } from '@/lib/motion';
+import { CreateMemberForm } from '@/components/CreateMemberForm';
 
 interface Member {
   _id: string;
