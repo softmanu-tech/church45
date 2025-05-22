@@ -89,8 +89,7 @@ export default function LeaderDashboard() {
 
   // Fetch data with all filters applied as query params
   useEffect(() => {
-
-    console.log("DEBUG - Filter changes detected:", {
+  console.log("DEBUG - Filter changes detected:", {
       selectedEventId,
       fromDate,
       toDate
