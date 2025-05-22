@@ -131,11 +131,11 @@ export default function LeaderDashboard() {
 
     useEffect(() => {
       console.log("DEBUG - Filter changes detected:", {
-        
+        selectedEventId,
+        fetchData();
       })
     })
     
-    fetchData();
   }, [ selectedEventId, fromDate, toDate]);
 
   // The rest filtering/search/sort/pagination logic stays the same...
