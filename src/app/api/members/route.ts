@@ -1,14 +1,17 @@
+// src/app/api/members/route.ts
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import dbConnect from '@/lib/dbConnect'
 import Member, { IMember } from '@/lib/models/Member'
 import { Group, IGroup } from '@/lib/models/Group'
+import { requireSessionAndRoles } from '@/lib/authMiddleware'
 import bcrypt from 'bcrypt'
 
 export async function POST(request: Request) {
   try {
     await dbConnect()
 
+    // Parse incoming JSON body
     const {
       name,
       email,
@@ -29,24 +32,30 @@ export async function POST(request: Request) {
       password: string
     } = await request.json()
 
-    // Validate group existence with populated leader (IGroup interface includes leader: IUser or ObjectId)
-    const group = await Group.findById(groupId).populate('leader')
-    if (!group) {
-      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+    // Require session & leader role
+    const { user } = await requireSessionAndRoles(request, ['leader'])
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Require leader to be set on group
-    if (!group.leader) {
-      return NextResponse.json({ error: 'Leader not set on group' }, { status: 400 })
-    }
-
-    // Validate required fields (adjust as needed)
+    // Validate presence of required fields
     if (!name || !email || !groupId || !role || !location || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
+    // Fetch group and populate leader
+    const group = await Group.findById(groupId).populate<{ leader: IGroup['leader'] }>('leader')
+    if (!group) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
+    }
+    if (!group.leader) {
+      return NextResponse.json({ error: 'Group leader not set' }, { status: 400 })
+    }
+
+    // Hash password securely
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    // Create new member object
     const newMemberData: Partial<IMember> = {
       name,
       email,
@@ -56,23 +65,19 @@ export async function POST(request: Request) {
       group: group._id,
       role,
       password: hashedPassword,
-      leader: (group.leader as any)._id || group.leader, // leader._id if populated else leader ObjectId
+      leader: (group.leader as mongoose.Types.ObjectId),
     }
 
-    // Create new member instance
     const newMember = new Member(newMemberData)
-
     await newMember.save()
 
-    // Push newMember to group's members
+    // Add member id to group's members array
     group.members.push(newMember._id)
     await group.save()
 
-    // Cast newMember._id explicitly to ObjectId to fix unknown error and convert to string
-    const memberId = newMember._id as mongoose.Types.ObjectId
-
+    // Return member data with _id and leader as strings
     return NextResponse.json({
-      _id: memberId.toString(),
+      _id: newMember._id.toString(),
       name: newMember.name,
       email: newMember.email,
       phone: newMember.phone,
