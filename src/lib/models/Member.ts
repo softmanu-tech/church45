@@ -10,6 +10,7 @@ export interface IMember extends Document {
   group: mongoose.Types.ObjectId; // ref to Group
   createdAt: Date;
   updatedAt: Date;
+  leader: mongoose.Types.ObjectId; // ref to User
 }
 
 const MemberSchema: Schema<IMember> = new Schema(
