@@ -6,8 +6,8 @@ import { toast } from "react-toastify"
 
 
 interface CreateMemberFormProps {
-  groupId: string; // The ID of the group to which the member will be added
-  leaderId: string; // The ID of the leader who is creating the member
+  groupId: string; 
+  leaderId: string; 
 }
 
 export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
