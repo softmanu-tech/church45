@@ -53,13 +53,14 @@ export async function POST(request: Request) {
         await group.save()
 
         return NextResponse.json({
+            _id: newMember._id.toString(), // Include the member ID
             name: newMember.name,
             email: newMember.email,
             phone: newMember.phone,
             department: newMember.department,
             location: newMember.location,
             role: newMember.role,
-            leader: newMember.leader // Include leader in the response if needed
+            leader: newMember.leader.toString() // Convert leader ID to string
         })
         
     } catch (error) {
