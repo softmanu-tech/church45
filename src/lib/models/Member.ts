@@ -24,7 +24,8 @@ const MemberSchema: Schema<IMember> = new Schema(
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
     leader: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    
+    role: { type: String, required: true, enum: ["member", "leader"] },
+    password: { type: String, required:}
   },
   { timestamps: true }
 );
