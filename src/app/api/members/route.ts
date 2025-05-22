@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         await group.save()
 
         return NextResponse.json({
-            _id: memberId.toString(),
+            
             _id: newMember._id.toString(), // Include the member ID
             name: newMember.name,
             email: newMember.email,
