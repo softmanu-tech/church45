@@ -37,7 +37,7 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
         if (data.success) {
           setGroups(data.groups)
         } else {
-          
+          toast.error(data.error || "Failed to fetch groups")
         }
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to fetch groups")
