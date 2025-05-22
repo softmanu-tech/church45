@@ -29,11 +29,14 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch("/api/groups") // Adjust the endpoint as necessary
+        const response = await fetch("/api/groups") 
         if (!response.ok) {
           throw new Error("Failed to fetch groups")
         }
         const data = await response.json()
+        if (data.success) {
+          
+        }
         setGroups(data) // Assuming the response is an array of groups
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to fetch groups")
