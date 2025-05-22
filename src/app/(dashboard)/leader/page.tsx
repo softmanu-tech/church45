@@ -130,7 +130,9 @@ export default function LeaderDashboard() {
     }; 
 
     useEffect(() => {
-      console.log
+      console.log("DEBUG - Filter changes detected:", {
+        
+      })
     })
     
     fetchData();
