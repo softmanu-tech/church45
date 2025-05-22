@@ -443,6 +443,7 @@ export default function LeaderDashboard() {
         onMemberCreated={() => {
           setOpenAddMember(false);
           // Add logic to refresh member list
+          fe
         }}
         />
 
