@@ -10,7 +10,7 @@ MemberSchema.pre<IMember>("save", async function (next) {
       if (error instanceof Error) {
         next(error)
       } else {
-        next(new Error("Unknown error during password hashing"))
+        
       }
     }
   })

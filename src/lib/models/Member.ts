@@ -41,6 +41,9 @@ MemberSchema.pre<IMember>("save", async function (next) {
     next()
   } catch (error) {
     next(error)
+  } else {
+    
+
   }
 })
 
