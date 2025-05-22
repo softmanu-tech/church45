@@ -1,11 +1,15 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast } from "react-toastify"
 
+interface Group {
+  _id: string
+  name: string
+}
+
 interface CreateMemberFormProps {
-  groupId: string
-  // Removed onMemberCreated prop to avoid serialization issues
+  groupId: string // This can be used to pre-select a group if needed
 }
 
 export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
@@ -17,6 +21,27 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
   const [role, setRole] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [groups, setGroups] = useState<Group[]>([]) // State for groups
+  const [selectedGroup, setSelectedGroup] = useState<string>("") // State for selected group
+
+  // Fetch existing groups from the database
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await fetch("/api/groups") // Adjust the endpoint as necessary
+        if (!response.ok) {
+          throw new Error("Failed to fetch groups")
+        }
+        const data = await response.json()
+        setGroups(data) // Assuming the response is an array of groups
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Failed to fetch groups")
+        console.error("Error fetching groups:", error)
+      }
+    }
+
+    fetchGroups()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,13 +53,23 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, phone, department, location, groupId, role, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          department,
+          location,
+          groupId: selectedGroup, // Use the selected group
+          role,
+          password,
+        }),
       })
 
       if (!res.ok) {
         throw new Error("Failed to create member")
       }
 
+      // Reset form fields
       setName("")
       setEmail("")
       setPhone("")
@@ -42,11 +77,9 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
       setLocation("")
       setRole("")
       setPassword("")
+      setSelectedGroup("") // Reset selected group
 
       toast.success("Member created successfully!")
-
-      // Optionally, you can add state or local callback logic here
-
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create member');
       console.error("Error creating member:", error)
@@ -56,7 +89,7 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4 bg-blue-500 shadow rounded">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4 bg-white shadow rounded">
       <div>
         <label className="block text-sm font-semibold mb-1">Name</label>
         <input
@@ -117,17 +150,16 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
         />
       </div>
       <div>
-      <label className="block text-sm font-semibold mb-1">Role</label>
-    <select
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        required
-    >
-        <option value="">Select </option>
-        <option value="member">Member</option>
-        <option value="leader">Leader</option>
-    </select>
+        <label className="block text-sm font-semibold mb-1">Role</label>
+        <input
+          type="text"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="e.g. member, leader"
+          disabled={loading}
+        />
       </div>
       <div>
         <label className="block text-sm font-semibold mb-1">Password</label>
@@ -141,6 +173,23 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
           disabled={loading}
         />
       </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Select Group</label>
+        <select
+          value={selectedGroup}
+          onChange={(e) => setSelectedGroup(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          disabled={loading}
+        >
+          <option value="">Select a group</option>
+          {groups.map((group) => (
+            <option key={group._id} value={group._id}>
+              {group.name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="flex gap-2 justify-end mt-4">
         <button
           type="reset"
@@ -152,6 +201,7 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
             setLocation("")
             setRole("")
             setPassword("")
+            setSelectedGroup("") // Reset selected group
           }}
           className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 disabled:opacity-50"
           disabled={loading}
@@ -169,4 +219,3 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
     </form>
   )
 }
-
