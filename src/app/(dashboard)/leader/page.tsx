@@ -133,12 +133,10 @@ export default function LeaderDashboard() {
       console.log("DEBUG - Filter changes detected:", {
         selectedEventId,
         fetchData();
-      })
+      }, [selectedEventId, fromDate, toDate])
     })
     
-  }, [ selectedEventId, fromDate, toDate]);
 
-  // The rest filtering/search/sort/pagination logic stays the same...
 
   const filteredMembers = useMemo(() => {
     if (!data) return [];
