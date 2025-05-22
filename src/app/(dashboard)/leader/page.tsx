@@ -123,11 +123,8 @@ export default function LeaderDashboard() {
     }; 
 
     useEffect(() => {
-      console.log("DEBUG - Filter changes detected:", {
-        selectedEventId,
-        fetchData();
-      }, [selectedEventId, fromDate, toDate])
-    })
+      fetchData();
+    }, [selectedEventId, fromDate, toDate]);
     
 
 
