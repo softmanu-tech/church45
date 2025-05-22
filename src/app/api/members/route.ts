@@ -40,7 +40,7 @@ export async function POST(request: Request) {
             phone,
             department,
             location,
-            group: groupId, // Use the selected groupId from the form
+            group: group, // Use the selected groupId from the form
             role,
             password: hashedPassword, // Save the hashed password
             leader: user.id // Assign the leader from the session
