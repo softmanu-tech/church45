@@ -29,7 +29,7 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch("/api/groups") // Adjust the endpoint as necessary
+        const response = await fetch("/api/bishop/groups") // Adjust the endpoint as necessary
         if (!response.ok) {
           throw new Error("Failed to fetch groups")
         }
