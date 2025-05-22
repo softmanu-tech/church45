@@ -8,7 +8,7 @@ export interface IMember extends Document {
   phone?: string
   department?: string
   location?: string
-  group: mongoose.Types.ObjectId // Reference to Group collection
+  group: mongoose.Types.ObjectId 
   role: "member" | "leader"
   password: string
   createdAt: Date
