@@ -9,6 +9,7 @@ interface Group {
 }
 
 interface CreateMemberFormProps {
+  groupId:
   // Removed groupId prop to allow selection from existing groups
 }
 
