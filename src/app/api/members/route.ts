@@ -40,10 +40,10 @@ export async function POST(request: Request) {
             phone,
             department,
             location,
-            group: group, // Use the selected groupId from the form
+            group: group._id, // Use the selected groupId from the form
             role,
             password: hashedPassword, // Save the hashed password
-            leader: user.id // Assign the leader from the session
+            leader: group.leader._id // Assign the leader from the session
         })
 
         await newMember.save()
