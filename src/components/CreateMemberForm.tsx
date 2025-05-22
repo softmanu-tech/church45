@@ -82,7 +82,7 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
       setLocation("")
       setRole("")
       setPassword("")
-      setSelectedGroup("") // Reset selected group
+      setSelectedGroup("") 
 
       toast.success("Member created successfully!")
     } catch (error) {
