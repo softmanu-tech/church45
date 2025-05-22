@@ -442,8 +442,7 @@ export default function LeaderDashboard() {
         groupId={data.group._id} 
         onMemberCreated={() => {
           setOpenAddMember(false);
-          // Add logic to refresh member list
-          fe
+          fetchData();
         }}
         />
 
