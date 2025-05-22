@@ -1,15 +1,16 @@
 "use client"
 
-import React, {  useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast } from "react-toastify"
 
 
 
 interface CreateMemberFormProps {
   groupId: string; // The ID of the group to which the member will be added
+  leaderEmail: string; // The email of the leader who is creating the member
 }
 
-export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, leaderEmail }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -38,6 +39,7 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
           groupId: groupId, // Use the groupId passed as a prop
           role,
           password,
+          leader: leaderEmail, // Automatically assign the leader's email
         }),
       })
 
@@ -57,7 +59,7 @@ export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
 
       toast.success("Member created successfully!")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create member');
+      toast.error(error instanceof Error ? error.message : "Failed to create member");
       console.error("Error creating member:", error)
     } finally {
       setLoading(false)
