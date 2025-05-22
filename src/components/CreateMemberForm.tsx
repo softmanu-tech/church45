@@ -1,12 +1,9 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, {  useState } from "react"
 import { toast } from "react-toastify"
 
-interface Group {
-  _id: string
-  name: string
-}
+
 
 interface CreateMemberFormProps {
   groupId: string; // The ID of the group to which the member will be added
