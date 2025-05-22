@@ -87,13 +87,7 @@ export default function LeaderDashboard() {
   const [fromDate, setFromDate] = useState<string>(''); // YYYY-MM-DD
   const [toDate, setToDate] = useState<string>(''); // YYYY-MM-DD
 
-  // Fetch data with all filters applied as query params
-  useEffect(() => {
-  console.log("DEBUG - Filter changes detected:", {
-      selectedEventId,
-      fromDate,
-      toDate
-    });
+
     const  fetchData = async () => {
       setLoading(true);
       try {
