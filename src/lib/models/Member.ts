@@ -41,11 +41,11 @@ MemberSchema.pre<IMember>("save", async function (next) {
     next()
   } catch (error) {
     if (error instanceof Error) {
-      next(error); // Pass the error to the next middleware
+      next(error); 
     } else {
-      next(new Error("Unknown error during password hashing")); // Handle unknown error
+      next(new Error("Unknown error during password hashing")); 
     }
-   
+  }
 })
 
 const Member: Model<IMember> = mongoose.models.Member || mongoose.model<IMember>("Member", MemberSchema)
