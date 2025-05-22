@@ -12,7 +12,7 @@ interface CreateMemberFormProps {
     groupId: string; // The ID of the group to which the member will be added
 }
 
-export function CreateMemberForm({ groupId }: CreateMemberFormProps) {
+export function CreateMemberForm({  }: CreateMemberFormProps) {
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [phone, setPhone] = useState("")
