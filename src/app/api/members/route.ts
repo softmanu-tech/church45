@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         }
 
         // Check for required fields
-        if (!name || !email || !groupId || !role || !department || !location || !password) {
+        if (!name || !email || !groupId || !role || !department || !location || !password || !leader) {
             return NextResponse.json(
                 { error: 'All fields are required' },
                 { status: 400 }
@@ -42,7 +42,8 @@ export async function POST(request: Request) {
             location,
             group: groupId, // Use the selected groupId from the form
             role, 
-            password 
+            password ,
+            leader
         })
 
         await newMember.save()
