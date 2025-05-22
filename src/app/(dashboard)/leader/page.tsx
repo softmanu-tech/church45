@@ -128,6 +128,10 @@ export default function LeaderDashboard() {
         setLoading(false);
       }
     }; 
+
+    useEffect(() => {
+      console.log
+    })
     
     fetchData();
   }, [ selectedEventId, fromDate, toDate]);
