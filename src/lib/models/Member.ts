@@ -1,18 +1,19 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-import bcrypt from 'bcrypt';
+import mongoose, { Schema, Document, Model } from "mongoose"
+import bcrypt from "bcrypt"
 
 export interface IMember extends Document {
-  name: string;
-  email: string;
-  phone?: string;
-  department?: string;
-  location?: string;
-  group: mongoose.Types.ObjectId; // ref to Group
-  role: string;
-  password: string;
-  createdAt: Date;
-  updatedAt: Date;
-  leader: mongoose.Types.ObjectId; // ref to User
+  _id: mongoose.Types.ObjectId
+  name: string
+  email: string
+  phone?: string
+  department?: string
+  location?: string
+  group: mongoose.Types.ObjectId // Reference to Group collection
+  role: "member" | "leader"
+  password: string
+  createdAt: Date
+  updatedAt: Date
+  leader: mongoose.Types.ObjectId // Reference to User collection
 }
 
 const MemberSchema: Schema<IMember> = new Schema(
@@ -23,20 +24,25 @@ const MemberSchema: Schema<IMember> = new Schema(
     department: { type: String },
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
-    leader: { type: Schema.Types.ObjectId, ref: "User ", required: true },
+    leader: { type: Schema.Types.ObjectId, ref: "User", required: true },
     role: { type: String, required: true, enum: ["member", "leader"] },
     password: { type: String, required: true },
   },
   { timestamps: true }
-);
+)
 
-// Hash the password before saving
-MemberSchema.pre<IMember>('save', async function (next) {
-    if (this.isModified('password')) {
-        this.password = await bcrypt.hash(this.password, 10);
-    }
-    next();
-});
+// Password hashing middleware
+MemberSchema.pre<IMember>("save", async function (next) {
+  if (!this.isModified("password")) return next()
 
-const Member: Model<IMember> = mongoose.models.Member || mongoose.model<IMember>("Member", MemberSchema);
-export default Member;
+  try {
+    const salt = await bcrypt.genSalt(10)
+    this.password = await bcrypt.hash(this.password, salt)
+    next()
+  } catch (error) {
+    next(error)
+  }
+})
+
+const Member: Model<IMember> = mongoose.models.Member || mongoose.model<IMember>("Member", MemberSchema)
+export default Member
