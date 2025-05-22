@@ -8,7 +8,8 @@ export interface IMember extends Document {
   department?: string;
   location?: string;
   group: mongoose.Types.ObjectId; // ref to Group
-  
+  role: string;
+  password: string
   createdAt: Date;
   updatedAt: Date;
   leader: mongoose.Types.ObjectId; // ref to User
@@ -23,6 +24,7 @@ const MemberSchema: Schema<IMember> = new Schema(
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
     leader: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    
   },
   { timestamps: true }
 );
