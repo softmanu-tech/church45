@@ -1,205 +1,185 @@
 "use client"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Toaster } from "@/components/ui/sonner"
 
-// Define TypeScript interfaces
-interface Event {
-    _id: string
-    title: string
-    date: string
-    description?: string
-    groupId: string
+import React, { useEffect, useState } from "react"
+import { toast } from "react-toastify"
+
+interface Group {
+  _id: string
+  name: string
 }
 
-interface ApiError {
-    error: string
+interface CreateMemberFormProps {
+  groupId: string; // The ID of the group to which the member will be added
+  leaderId: string; // The ID of the leader who is creating the member
 }
 
-// Zod schema for form validation
-const eventFormSchema = z.object({
-    title: z.string().min(1, "Title is required").max(100, "Title too long"),
-    date: z.date({
-        required_error: "Event date is required",
-        invalid_type_error: "Invalid date format",
-    }),
-    description: z.string().max(500, "Description too long").optional(),
-})
+export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [department, setDepartment] = useState("")
+  const [location, setLocation] = useState("")
+  const [role, setRole] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
 
-type EventFormValues = z.infer<typeof eventFormSchema>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-interface CreateEventFormProps {
-    groupId: string
-    onEventCreated: (event: Event) => void
-}
-
-export function CreateEventForm({ groupId, onEventCreated }: CreateEventFormProps) {
-    const [isSubmitting, setIsSubmitting] = useState(false)
-
-    const form = useForm<EventFormValues>({
-        resolver: zodResolver(eventFormSchema),
-        defaultValues: {
-            title: "",
-            description: "",
+    try {
+      const res = await fetch("/api/members", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-    })
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          department,
+          location,
+          group: groupId, // Use the groupId passed as a prop
+          role,
+          password,
+          leader: leaderId, // Automatically assign the leader's ID
+        }),
+      })
 
-    async function onSubmit(values: EventFormValues) {
-        try {
-            setIsSubmitting(true)
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to create member");
+      }
 
-            const response = await fetch("/api/events", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    ...values,
-                    groupId,
-                    date: values.date.toISOString(),
-                }),
-            })
+      // Reset form fields
+      setName("")
+      setEmail("")
+      setPhone("")
+      setDepartment("")
+      setLocation("")
+      setRole("")
+      setPassword("")
 
-            if (!response.ok) {
-                const errorData: ApiError = await response.json()
-                throw new Error(errorData.error || "Failed to create event")
-            }
-
-            const newEvent: Event = await response.json()
-            onEventCreated(newEvent)
-            form.reset()
-
-            Toaster({
-                title: "Success",
-                description: "Event created successfully",
-                variant: "default",
-            })
-
-        } catch (error) {
-            console.error("Error creating event:", error)
-            Toaster({
-                title: "Error",
-                description: error instanceof Error ? error.message : "Failed to create event",
-                variant: "error",
-            })
-        } finally {
-            setIsSubmitting(false)
-        }
+      toast.success("Member created successfully!")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to create member");
+      console.error("Error creating member:", error)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Event Title *</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Weekly meeting"
-                                    {...field}
-                                    disabled={isSubmitting}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                            <FormLabel>Event Date *</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-[240px] pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground",
-                                                isSubmitting && "opacity-50"
-                                            )}
-                                            disabled={isSubmitting}
-                                        >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        disabled={(date) => date < new Date() || isSubmitting}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                    placeholder="Event details..."
-                                    className="resize-none"
-                                    {...field}
-                                    disabled={isSubmitting}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full sm:w-auto"
-                >
-                    {isSubmitting ? (
-                        <>
-                            <span className="animate-spin mr-2">↻</span>
-                            Creating...
-                        </>
-                    ) : "Create Event"}
-                </Button>
-            </form>
-        </Form>
-    )
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4 bg-blue-500 shadow rounded">
+      <div>
+        <label className="block text-sm font-semibold mb-1">Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="Full name"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="user@example.com"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Phone</label>
+        <input
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="+1234567890"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Department</label>
+        <input
+          type="text"
+          value={department}
+          onChange={(e) => setDepartment(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Department (optional)"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Location</label>
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="Location"
+          disabled={loading}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Role</label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="">Select </option>
+          <option value="member">Member</option>
+          <option value="leader">Leader</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-semibold mb-1">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+          placeholder="Enter a secure password"
+          disabled={loading}
+        />
+      </div>
+      <div className="flex gap-2 justify-end mt-4">
+        <button
+          type="reset"
+          onClick={() => {
+            setName("")
+            setEmail("")
+            setPhone("")
+            setDepartment("")
+            setLocation("")
+            setRole("")
+            setPassword("")
+          }}
+          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 disabled:opacity-50"
+          disabled={loading}
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Create Member"}
+        </button>
+      </div>
+    </form>
+  )
 }
