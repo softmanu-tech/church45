@@ -22,7 +22,7 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
   const [role, setRole] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [groups, setGroups] = useState<Group[]>([]) // State for groups
+  const [groups, setGroups] = useState<Group[]>([])  for groups
   const [selectedGroup, setSelectedGroup] = useState<string>("") // State for selected group
 
   // Fetch existing groups from the database
