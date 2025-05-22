@@ -21,6 +21,7 @@ const MemberSchema: Schema<IMember> = new Schema(
     department: { type: String },
     location: { type: String },
     group: { type: Schema.Types.ObjectId, ref: "Group", required: true },
+    
   },
   { timestamps: true }
 );
