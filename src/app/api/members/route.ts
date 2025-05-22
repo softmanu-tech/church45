@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         const { name, email, phone, department, location, groupId, role, password } = await request.json()
 
         // Validate groupId
-        const group = await Group.findById(groupId)
+        const group = await Group.findById(groupId).populate('leader'); // Ensure leader is populated
         if (!group) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
         }
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
             group: group._id, // Use the selected groupId from the form
             role,
             password: hashedPassword, // Save the hashed password
-            leader: group.leader._id // Assign the leader from the session
+            leader: group.leader ? group.leader._id : null // Assign the leader from the group, if it exists
         })
 
         await newMember.save()
@@ -52,16 +52,16 @@ export async function POST(request: Request) {
         group.members.push(newMember._id)
         await group.save()
 
+        // Return the response with member details
         return NextResponse.json({
-            
-            _id: newMember._id.toString(), // Include the member ID
+            _id: newMember._id.toString(), // Convert ObjectId to string
             name: newMember.name,
             email: newMember.email,
             phone: newMember.phone,
             department: newMember.department,
             location: newMember.location,
             role: newMember.role,
-            leader: newMember.leader.toString() // Convert leader ID to string
+            leader: newMember.leader ? newMember.leader.toString() : null // Convert leader ID to string if it exists
         })
         
     } catch (error) {
