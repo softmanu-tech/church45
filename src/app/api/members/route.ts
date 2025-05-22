@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       department,
       location,
       group: group._id,
-      role,
+      role: role as "member" | "leader",
       password: hashedPassword,
       leader: (group.leader as mongoose.Types.ObjectId),
     }
