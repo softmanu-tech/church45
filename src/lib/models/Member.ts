@@ -41,7 +41,6 @@ MemberSchema.pre<IMember>("save", async function (next) {
     next()
   } catch (error) {
     next(error)
-    console.log
   } else {
     next(new Error("Unknown error during password hashing"))
 
