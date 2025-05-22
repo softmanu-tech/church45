@@ -10,6 +10,7 @@ export async function POST(request: Request) {
         await dbConnect()
         const { name, email, phone, department, location, groupId, role, password } = await request.json()
 
+        // Validate groupId
         const group = await Group.findById(groupId)
         if (!group) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
@@ -33,14 +34,13 @@ export async function POST(request: Request) {
             )
         }
 
-        
         const newMember = new User({
             name,
             email,
             phone,
             department,
             location,
-            group: leader.group._id,
+            group: groupId, // Use the selected groupId from the form
             role, 
             password 
         })
