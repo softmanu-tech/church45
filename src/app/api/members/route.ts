@@ -1,69 +1,88 @@
-// src/app/api/members/route.ts
 import { NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import dbConnect from '@/lib/dbConnect'
-import Member from '@/lib/models/Member' // Ensure you import the Member model
-import { Group } from '@/lib/models/Group'
-import { requireSessionAndRoles } from '@/lib/authMiddleware'
-import bcrypt from 'bcrypt' // Import bcrypt for password hashing
+import Member, { IMember } from '@/lib/models/Member'
+import { Group, IGroup } from '@/lib/models/Group'
+import bcrypt from 'bcrypt'
 
 export async function POST(request: Request) {
-    try {
-        await dbConnect()
-        const { name, email, phone, department, location, groupId, role, password } = await request.json()
+  try {
+    await dbConnect()
 
-        // Validate groupId
-        const group = await Group.findById(groupId).populate('leader'); // Ensure leader is populated
-        if (!group) {
-            return NextResponse.json({ error: 'Group not found' }, { status: 404 })
-        }
+    const {
+      name,
+      email,
+      phone,
+      department,
+      location,
+      groupId,
+      role,
+      password,
+    }: {
+      name: string
+      email: string
+      phone?: string
+      department?: string
+      location: string
+      groupId: string
+      role: string
+      password: string
+    } = await request.json()
 
-        // Check for required fields
-        if (!name || !email || !groupId || !role || !department || !location || !password) {
-            return NextResponse.json(
-                { error: 'All fields are required' },
-                { status: 400 }
-            )
-        }
-
-        // Hash the password before saving
-        const hashedPassword = await bcrypt.hash(password, 10)
-
-        // Create a new member
-        const newMember = new Member({
-            name,
-            email,
-            phone,
-            department,
-            location,
-            group: group._id, // Use the selected groupId from the form
-            role,
-            password: hashedPassword, // Save the hashed password
-            leader: group.leader ? group.leader._id : null // Assign the leader from the group, if it exists
-        })
-
-        await newMember.save()
-
-        // Add member to group
-        group.members.push(newMember._id)
-        await group.save()
-
-        // Return the response with member details
-        return NextResponse.json({
-            _id: newMember._id.toString(), // Convert ObjectId to string
-            name: newMember.name,
-            email: newMember.email,
-            phone: newMember.phone,
-            department: newMember.department,
-            location: newMember.location,
-            role: newMember.role,
-            leader: newMember.leader ? newMember.leader.toString() : null // Convert leader ID to string if it exists
-        })
-        
-    } catch (error) {
-        console.error('Error adding member:', error)
-        return NextResponse.json(
-            { error: 'Failed to add member' },
-            { status: 500 }
-        )
+    // Validate group existence with populated leader (IGroup interface includes leader: IUser or ObjectId)
+    const group = await Group.findById(groupId).populate('leader')
+    if (!group) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
+
+    // Require leader to be set on group
+    if (!group.leader) {
+      return NextResponse.json({ error: 'Leader not set on group' }, { status: 400 })
+    }
+
+    // Validate required fields (adjust as needed)
+    if (!name || !email || !groupId || !role || !location || !password) {
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newMemberData: Partial<IMember> = {
+      name,
+      email,
+      phone,
+      department,
+      location,
+      group: group._id,
+      role,
+      password: hashedPassword,
+      leader: (group.leader as any)._id || group.leader, // leader._id if populated else leader ObjectId
+    }
+
+    // Create new member instance
+    const newMember = new Member(newMemberData)
+
+    await newMember.save()
+
+    // Push newMember to group's members
+    group.members.push(newMember._id)
+    await group.save()
+
+    // Cast newMember._id explicitly to ObjectId to fix unknown error and convert to string
+    const memberId = newMember._id as mongoose.Types.ObjectId
+
+    return NextResponse.json({
+      _id: memberId.toString(),
+      name: newMember.name,
+      email: newMember.email,
+      phone: newMember.phone,
+      department: newMember.department,
+      location: newMember.location,
+      role: newMember.role,
+      leader: newMember.leader.toString(),
+    })
+  } catch (error) {
+    console.error('Error adding member:', error)
+    return NextResponse.json({ error: 'Failed to add member' }, { status: 500 })
+  }
 }
