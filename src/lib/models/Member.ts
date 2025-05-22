@@ -40,11 +40,12 @@ MemberSchema.pre<IMember>("save", async function (next) {
     this.password = await bcrypt.hash(this.password, salt)
     next()
   } catch (error) {
-    next(error)
-  } else {
-    next(new Error("Unknown error during password hashing"))
-
-  }
+    if (error instanceof Error) {
+      next(error); // Pass the error to the next middleware
+    } else {
+      next(new Error("Unknown error during password hashing")); // Handle unknown error
+    }
+   
 })
 
 const Member: Model<IMember> = mongoose.models.Member || mongoose.model<IMember>("Member", MemberSchema)
