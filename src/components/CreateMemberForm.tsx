@@ -189,7 +189,7 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
           disabled={loading}
         >
           <option value="">Select a group</option>
-          {groups.map((group) => (
+          {Array.isArray(groups) && groups.map((group) => (
             <option key={group._id} value={group._id}>
               {group.name}
             </option>
