@@ -109,7 +109,7 @@ export default function LeaderDashboard() {
 
 
         const res = await fetch(`/api/leader?${params.toString()}`,{
-          credentials: 'include', //sent co
+          credentials: 'include', 
           headers: {
             'Content-Type': 'application/json',
           },
