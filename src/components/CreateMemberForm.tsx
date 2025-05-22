@@ -35,9 +35,10 @@ export function CreateMemberForm({}: CreateMemberFormProps) {
         }
         const data = await response.json()
         if (data.success) {
+          setGroups(data.groups)
+        } else {
           
         }
-        setGroups(data) // Assuming the response is an array of groups
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Failed to fetch groups")
         console.error("Error fetching groups:", error)
