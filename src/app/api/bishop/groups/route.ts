@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
-import  Group  from '@/lib/models/Group';
+import  {Group } from '@/lib/models/Group';
 
 // ➕ CREATE a group
 export async function POST(req: Request) {
