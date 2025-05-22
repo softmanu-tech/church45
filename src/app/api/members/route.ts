@@ -17,11 +17,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
         }
 
-        const { user } = await requireSessionAndRoles(request, ['leader'])
-        if (!user?.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
         // Check for required fields
         if (!name || !email || !groupId || !role || !department || !location || !password) {
             return NextResponse.json(
