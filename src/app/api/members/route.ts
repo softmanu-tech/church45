@@ -6,59 +6,58 @@ import { Group, IGroup } from '@/lib/models/Group'
 import { requireSessionAndRoles } from '@/lib/authMiddleware'
 
 export async function POST(request: Request) {
-try {
-    await dbConnect()
-    const { name, email, phone, department, location, groupId, role } = await request.json()
+    try {
+        await dbConnect()
+        const { name, email, phone, department, location, groupId, role, password } = await request.json()
 
-
-    const group = await Group.findById(groupId)
+        const group = await Group.findById(groupId)
         if (!group) {
             return NextResponse.json({ error: 'Group not found' }, { status: 404 })
         }
 
-    const {user} = await requireSessionAndRoles(request, ['leader'])
-    if (!user?.id){
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+        const { user } = await requireSessionAndRoles(request, ['leader'])
+        if (!user?.id) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
 
-    
+        const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
+        if (!leader?.group) {
+            return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
+        }
 
-    const leader = await User.findById(user.id).populate<{ group: IGroup }>('group');
-    if (!leader?.group) {
-      return NextResponse.json({ error: 'Leader group not found' }, { status: 404 });
-    }
+        // Check for required fields
+        if (!name || !email || !groupId || !role || !department || !location || !password) {
+            return NextResponse.json(
+                { error: 'All fields are required' },
+                { status: 400 }
+            )
+        }
 
+        
+        const newMember = new User({
+            name,
+            email,
+            phone,
+            department,
+            location,
+            group: leader.group._id,
+            role, 
+            password 
+        })
 
-    if (!name || !email || !groupId || !role || !department || !location) {
-        return NextResponse.json(
-            { error: 'All fields are required' },
-            { status: 400 }
-        )
-    }
+        await newMember.save()
 
-    const newMember = new User({
-        name,
-        email,
-        phone,
-        department,
-        location,
-        group: leader.group._id,
-        role: 'member'
-    })
+        // Add member to group
+        group.members.push(newMember._id)
+        await group.save()
 
-    await newMember.save()
-
-    // Add member to group
-    group.members.push(newMember._id)
-    await group.save()
-
-    return NextResponse.json({
-        _id: newMember._id.toString(),
-        name: newMember.name,
-        email: newMember.email,
-        phone: newMember.phone
-    })
-    
+        return NextResponse.json({
+            _id: newMember._id.toString(),
+            name: newMember.name,
+            email: newMember.email,
+            phone: newMember.phone
+        })
+        
     } catch (error) {
         console.error('Error adding member:', error)
         return NextResponse.json(

@@ -1,41 +1,14 @@
-export default function LeaderDashboard() {
-    // ... existing state declarations
-  
-    // Extract fetch logic into a reusable function
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams();
-        if (selectedEventId) params.append('eventId', selectedEventId);
-        if (fromDate) params.append('fromDate', fromDate);
-        if (toDate) params.append('toDate', toDate);
-  
-        const res = await fetch(`/api/leader?${params.toString()}`, {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-        });
-  
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to fetch data');
-        }
-  
-        const json: DashboardResponse = await res.json();
-        setData(json);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    // Update useEffect to use the extracted function
-    useEffect(() => {
-      console.log("DEBUG - Filter changes detected:", { selectedEventId, fromDate, toDate });
-      fetchData();
-    }, [selectedEventId, fromDate, toDate]);
-  
-    // ... rest of the component remains the same
-  }
+<div>
+    <label className="block text-sm font-semibold mb-1">Role</label>
+    <select
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        required
+    >
+        <option value="">Select a role</option>
+        <option value="member">Member</option>
+        <option value="leader">Leader</option>
+        <option value="bishop">Bishop</option>
+    </select>
+</div>
