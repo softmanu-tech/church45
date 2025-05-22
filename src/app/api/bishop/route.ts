@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
 import { User } from "@/lib/models/User";
-import Group from "@/lib/models/Group";
+import {Group} from "@/lib/models/Group";
 import { Attendance } from "@/lib/models/Attendance";
 
 export async function GET(req: NextRequest) {
