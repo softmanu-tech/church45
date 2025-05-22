@@ -52,7 +52,9 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      
+      <div className="">
+        Cancel
+      </div>
       <div>
         <label className="block text-sm font-medium">Name</label>
         <input
