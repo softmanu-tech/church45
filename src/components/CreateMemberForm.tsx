@@ -37,10 +37,10 @@ export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateM
           phone,
           department,
           location,
-          groupId: groupId, // Use the groupId passed as a prop
+          groupId: groupId, 
           role,
           password,
-          leader: leaderEmail, // Automatically assign the leader's email
+          leader: leaderId, 
         }),
       })
 
