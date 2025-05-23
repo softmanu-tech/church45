@@ -1,6 +1,5 @@
 "use client"
 
-import { on } from "events";
 import React, {  useState } from "react"
 import { toast } from "react-toastify"
 
@@ -9,10 +8,9 @@ import { toast } from "react-toastify"
 interface CreateMemberFormProps {
   groupId: string; 
   leaderId: string; 
-  onMemberCreated: () => void; // Function to refresh the member list
 }
 
-export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -60,7 +58,7 @@ export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateM
       setPassword("")
 
       toast.success("Member created successfully!")
-      onMemberCreated() // Call the onMemberCreated function to refresh the member list
+      
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create member");
       console.error("Error creating member:", error)
