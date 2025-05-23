@@ -1,5 +1,5 @@
 // src/context/UserContext.tsx
-import { User } from '@/lib/models/User';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 interface User {
