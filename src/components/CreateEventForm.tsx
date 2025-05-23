@@ -9,6 +9,7 @@ import { toast } from "react-toastify"
 interface CreateMemberFormProps {
   groupId: string; 
   leaderId: string; 
+  onMemberCreated: () => void; // Function to refresh the member list
 }
 
 export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
