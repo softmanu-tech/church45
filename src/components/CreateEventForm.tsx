@@ -39,7 +39,7 @@ export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
           group: groupId, // Use the groupId passed as a prop
           role,
           password,
-          leader: leaderId, // Autom
+          leader: leaderId, // Automatically assign the leader's ID
         }),
       })
 
