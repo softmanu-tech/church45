@@ -12,7 +12,7 @@ interface CreateMemberFormProps {
   onMemberCreated: () => void; // Function to refresh the member list
 }
 
-export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
