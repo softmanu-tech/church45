@@ -126,6 +126,12 @@ export default function LeaderDashboard() {
         setLoading(false);
       }
     }; 
+    if (user !== null) {
+      console.log(user.id); 
+    } else {
+      console.log('User  is null');
+    }
+    
 
     useEffect(() => {
       fetchData();
