@@ -11,7 +11,7 @@ interface CreateMemberFormProps {
   onMemberCreated: () => void; // Optional callback function to be called after member creation
 }
 
-export function CreateMemberForm({ groupId, leaderEmail }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, leaderEmail, onMemberCreated }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
