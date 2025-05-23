@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { useUser } from '@/context/UserContext';
 
 import { motion } from 'framer-motion';
 import {
@@ -72,7 +71,6 @@ function LoadingSkeleton() {
 }
 
 export default function LeaderDashboard() {
-  const user = useUser();
   const [data, setData] = useState<DashboardResponse| null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -439,7 +437,7 @@ export default function LeaderDashboard() {
       { openAddMember &&  (
         <CreateMemberForm
         groupId={data.group._id} 
-        leaderId={data.group.leader!.toString()}
+        leaderId={data.group.leader!._id}
 
         onMemberCreated={() => {
           setOpenAddMember(false);
