@@ -8,7 +8,6 @@ import { toast } from "react-toastify"
 interface CreateMemberFormProps {
   groupId: string; 
   leaderId: string; 
-  UserId: string; // 
   onMemberCreated: () => void; // Optional callback function to be called after member creation
 }
 
