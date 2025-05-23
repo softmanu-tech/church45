@@ -439,7 +439,7 @@ export default function LeaderDashboard() {
       { openAddMember &&  (
         <CreateMemberForm
         groupId={data.group._id} 
-        leaderId={user.id}
+        leaderId={}
 
         onMemberCreated={() => {
           setOpenAddMember(false);
