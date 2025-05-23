@@ -1,4 +1,6 @@
 "use client"
+
+import { on } from "events";
 import React, {  useState } from "react"
 import { toast } from "react-toastify"
 
@@ -136,7 +138,9 @@ export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateM
           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
+          <option value="">Select </option>
           <option value="member">Member</option>
+          <option value="leader">Leader</option>
         </select>
       </div>
       <div>
