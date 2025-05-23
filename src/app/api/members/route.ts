@@ -2,8 +2,8 @@
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import dbConnect from '@/lib/dbConnect'
-import Member, { IMember } from '@/lib/models/Member'
-import { Group, IGroup } from '@/lib/models/Group'
+import Member from '@/lib/models/Member'
+import { Group } from '@/lib/models/Group'
 import { requireSessionAndRoles } from '@/lib/authMiddleware'
 import bcrypt from 'bcrypt'
 
@@ -11,7 +11,6 @@ export async function POST(request: Request) {
   try {
     await dbConnect()
 
-    // Parse incoming JSON body
     const {
       name,
       email,
@@ -32,50 +31,51 @@ export async function POST(request: Request) {
       password: string
     } = await request.json()
 
-    // Require session & leader role
+    // Verify logged-in user with 'leader' role
     const { user } = await requireSessionAndRoles(request, ['leader'])
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Validate presence of required fields
+    // Validate required fields
     if (!name || !email || !groupId || !role || !location || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    // Fetch group and populate leader
-    const group = await Group.findById(groupId).populate<{ leader: IGroup['leader'] }>('leader')
+    // Fetch the group by ID
+    const group = await Group.findById(groupId)
     if (!group) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 })
     }
-    if (!group.leader) {
-      return NextResponse.json({ error: 'Group leader not set' }, { status: 400 })
+
+    // Update group's leader to be the user creating the member
+    if (!group.leader || group.leader.toString() !== user.id) {
+      group.leader = new mongoose.Types.ObjectId(user.id)
+      await group.save()
     }
 
     // Hash password securely
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create new member object
-    const newMemberData: Partial<IMember> = {
+    // Create the new member, assigning the leader as the user creating the member
+    const newMember = new Member({
       name,
       email,
       phone,
       department,
       location,
       group: group._id,
-      role: role as "member" | "leader",
+      role,
       password: hashedPassword,
-      leader: (group.leader as mongoose.Types.ObjectId),
-    }
+      leader: new mongoose.Types.ObjectId(user.id),
+    })
 
-    const newMember = new Member(newMemberData)
     await newMember.save()
 
-    // Add member id to group's members array
+    // Add the new member to group's members array
     group.members.push(newMember._id)
     await group.save()
 
-    // Return member data with _id and leader as strings
     return NextResponse.json({
       _id: newMember._id.toString(),
       name: newMember.name,
