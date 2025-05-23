@@ -1,5 +1,6 @@
 "use client"
 
+import { on } from "events";
 import React, {  useState } from "react"
 import { toast } from "react-toastify"
 
@@ -58,6 +59,7 @@ export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
       setPassword("")
 
       toast.success("Member created successfully!")
+      onMemberCreated() // Call the onMemberCreated function to refresh the member list
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create member");
       console.error("Error creating member:", error)
