@@ -7,7 +7,7 @@ import { toast } from "react-toastify"
 
 interface CreateMemberFormProps {
   groupId: string; // The ID of the group to which the member will be added
-  leaderEmail: string; // The email of the leader who is creating the member
+  leaderId: string; // The email of the leader who is creating the member
   onMemberCreated: () => void; // Optional callback function to be called after member creation
 }
 
