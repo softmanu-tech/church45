@@ -104,6 +104,8 @@ export default function LeaderDashboard() {
         if (toDate) params.append('toDate', toDate);
 
         console.log('Fetching with params:', params.toString());
+        const userId = user?.id || 'defaultId'; // Use 'defaultId' if user is null
+
 
 
         const res = await fetch(`/api/leader?${params.toString()}`,{
