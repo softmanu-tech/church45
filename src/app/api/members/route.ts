@@ -1,4 +1,3 @@
-// src/app/api/members/route.ts
 import { NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import dbConnect from '@/lib/dbConnect'
