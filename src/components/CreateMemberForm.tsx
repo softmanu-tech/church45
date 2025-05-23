@@ -59,6 +59,7 @@ export function CreateMemberForm({ groupId, leaderEmail, onMemberCreated }: Crea
       setPassword("")
 
       toast.success("Member created successfully!")
+      onMemberCreated()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create member");
       console.error("Error creating member:", error)
