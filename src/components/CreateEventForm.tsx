@@ -7,10 +7,10 @@ import { toast } from "react-toastify"
 
 interface CreateMemberFormProps {
   groupId: string; 
-  leaderId: string; 
+  leaderEmail: string;
 }
 
-export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, leaderEmail }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
@@ -39,7 +39,7 @@ export function CreateMemberForm({ groupId, leaderId }: CreateMemberFormProps) {
           group: groupId, // Use the groupId passed as a prop
           role,
           password,
-          leader: leaderId, // Automatically assign the leader's ID
+          leader: leaderEmail, // Automatically assign the leader's ID
         }),
       })
 

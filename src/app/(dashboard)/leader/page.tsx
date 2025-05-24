@@ -447,19 +447,21 @@ export default function LeaderDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      {/** openAddMembere*/}
-      { openAddMember &&  (
+      {/** openAddMembere
+      { openAddMember && user && (
         <CreateMemberForm
         groupId={data.group._id} 
-        leaderId={user.id}
+        leaderEmail={user?.email || ''}
 
         onMemberCreated={() => {
           setOpenAddMember(false);
           fetchData();
         }}
+          
         />
 
       )}
+        */}
     </motion.div>
   );
 }
