@@ -6,7 +6,6 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import { User } from '@/lib/models/User';
 import { requireSessionAndRoles } from "@/lib/authMiddleware";
-import mongoose from 'mongoose';
 
 export async function GET(request: Request) {
   try {
