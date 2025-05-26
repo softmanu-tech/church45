@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     await dbConnect();
 
     // 1. Strict Authentication
-    const { user } = await requireSessionAndRoles(request, ['admin', 'leader']); // Allow both admin and leader roles
+    const { user } = await requireSessionAndRoles(request, ['bishop', 'leader']); // Allow both bishop and leader roles
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     await dbConnect();
 
     // 1. Strict Authentication
-    const { user } = await requireSessionAndRoles(request, ['admin']); // Only admin can create users
+    const { user } = await requireSessionAndRoles(request, ['bishop']); // Only bishop can create users
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -80,7 +80,7 @@ export async function PUT(request: Request) {
     await dbConnect();
 
     // 1. Strict Authentication
-    const { user } = await requireSessionAndRoles(request, ['admin']); // Only admin can update users
+    const { user } = await requireSessionAndRoles(request, ['bishop']); // Only bishop can update users
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -120,7 +120,7 @@ export async function DELETE(request: Request) {
     await dbConnect();
 
     // 1. Strict Authentication
-    const { user } = await requireSessionAndRoles(request, ['admin']); // Only admin can delete users
+    const { user } = await requireSessionAndRoles(request, ['bishop']); // Only bishop can delete users
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
