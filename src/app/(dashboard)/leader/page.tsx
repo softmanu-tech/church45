@@ -1,8 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
-
-import { useUser } from '@/context/UserContext';
-
+import { useUser  } from '@/context/UserContext';
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
@@ -27,8 +25,6 @@ interface Event {
   date: string;
 }
 
-
-
 interface Group {
   _id: string;
   name: string;
@@ -36,7 +32,6 @@ interface Group {
     _id: string;
     name: string;
   } | null;
-
 }
 
 export interface DashboardResponse {
@@ -72,8 +67,8 @@ function LoadingSkeleton() {
 }
 
 export default function LeaderDashboard() {
-  const user = useUser();
-  const [data, setData] = useState<DashboardResponse| null>(null);
+  const user = useUser ();
+  const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openAddMember, setOpenAddMember] = useState(false);
@@ -90,60 +85,42 @@ export default function LeaderDashboard() {
   const [fromDate, setFromDate] = useState<string>(''); // YYYY-MM-DD
   const [toDate, setToDate] = useState<string>(''); // YYYY-MM-DD
 
-  
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (selectedEventId) params.append('eventId', selectedEventId);
+      if (fromDate) params.append('fromDate', fromDate);
+      if (toDate) params.append('toDate', toDate);
 
+      const userId = user?.id || 'defaultId'; // Use 'defaultId' if user is null
 
-    const  fetchData = async () => {
-      setLoading(true);
-      try {
-        
-        const params = new URLSearchParams();
-        //params.append('userId', userId);
-        if (selectedEventId) params.append('eventId', selectedEventId);
-        if (fromDate) params.append('fromDate', fromDate);
-        if (toDate) params.append('toDate', toDate);
-
-        console.log('Fetching with params:', params.toString());
-        const userId = user?.id || 'defaultId'; // Use 'defaultId' if user is null
-
-
-
-        const res = await fetch(`/api/leader?${params.toString()}`,{
-          credentials: 'include', 
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || 'Failed to fetch data');
-        }
-        const json: DashboardResponse = await res.json();
-        setData(json);
-        setCurrentPage(1); // Reset page on new filter
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
+      const res = await fetch(`/api/leader?${params.toString()}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to fetch data');
       }
-    }; 
-    if (user !== null) {
-      console.log(user.id); 
-    } else {
-      console.log('User  is null');
+      const json: DashboardResponse = await res.json();
+      setData(json);
+      setCurrentPage(1); // Reset page on new filter
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
     }
-    
+  };
 
-    useEffect(() => {
-      if(user) {
+  useEffect(() => {
+    if (user) {
       fetchData();
-
-
-      }
-    }, [selectedEventId, fromDate, toDate]);
-    
-
+    }
+  }, [selectedEventId, fromDate, toDate, user]);
 
   const filteredMembers = useMemo(() => {
     if (!data) return [];
@@ -236,20 +213,20 @@ export default function LeaderDashboard() {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
       key="leader-dashboard"  
-        className="p-4 max-w-7xl mx-auto space-y-8">
+      className="p-4 max-w-7xl mx-auto space-y-8"
+    >
       <h1 className="text-3xl font-bold mb-4"></h1>
       <motion.div variants={fadeIn("up", "spring", 0.2, 1)}>
-                <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold text-white">{data.group.name} -  Leader Dashboard</h1>
-                    <div className="space-x-2">
-                    <button className='border-2  border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all py-1 px-3 rounded-full' onClick={()=>setOpenAddMember(true)}>Add Member</button>
-                        <Link href="/leader/events" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
-                            Create Event
-                        </Link>
-                    </div>
-                </div>
-            </motion.div>
-
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-white">{data.group.name} - Leader Dashboard</h1>
+          <div className="space-x-2">
+            <button className='border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all py-1 px-3 rounded-full' onClick={() => setOpenAddMember(true)}>Add Member</button>
+            <Link href="/leader/events" className="btn bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-950">
+              Create Event
+            </Link>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6">
@@ -325,7 +302,6 @@ export default function LeaderDashboard() {
           }}
           className="border px-3 py-2 rounded"
           max={toDate || undefined}
-          placeholder="From Date"
         />
 
         {/* To Date */}
@@ -338,7 +314,6 @@ export default function LeaderDashboard() {
           }}
           className="border px-3 py-2 rounded"
           min={fromDate || undefined}
-          placeholder="To Date"
         />
       </div>
 
@@ -394,74 +369,4 @@ export default function LeaderDashboard() {
       </motion.table>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-4 space-x-2">
-        {Array.from({ length: Math.ceil(sortedMembers.length / PAGE_SIZE) }).map((_, i) => (
-          <button
-            key={i}
-            className={`px-3 py-1 rounded border ${
-              currentPage === i + 1 ? 'bg-blue-600 text-white' : 'bg-white text-blue-600'
-            }`}
-            onClick={() => setCurrentPage(i + 1)}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
-        <div>
-          <h2 className="text-xl font-semibold mb-3">Attendance Trend</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={attendanceTrend}>
-              <XAxis dataKey="date" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="attendance" fill="#3182ce" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold mb-3">Member Rating Distribution</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={ratingDistribution}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {ratingDistribution.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={ratingColors[entry.name as keyof typeof ratingColors]} />
-
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      {/** openAddMembere
-      { openAddMember && user && (
-        <CreateMemberForm
-        groupId={data.group._id} 
-        leaderEmail={user?.email || ''}
-
-        onMemberCreated={() => {
-          setOpenAddMember(false);
-          fetchData();
-        }}
-          
-        />
-
-      )}
-        */}
-    </motion.div>
-  );
-}
+      <div class
