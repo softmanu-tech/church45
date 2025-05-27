@@ -447,11 +447,11 @@ export default function LeaderDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
-      {/** openAddMembere
+      {/** openAddMembere */}
       { openAddMember && user && (
         <CreateMemberForm
         groupId={data.group._id} 
-        leaderEmail={user?.email || ''}
+        leader={user?.email || ''}
 
         onMemberCreated={() => {
           setOpenAddMember(false);
@@ -461,7 +461,7 @@ export default function LeaderDashboard() {
         />
 
       )}
-        */}
+        
     </motion.div>
   );
 }
