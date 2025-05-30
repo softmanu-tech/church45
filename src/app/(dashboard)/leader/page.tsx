@@ -136,6 +136,7 @@ export default function LeaderDashboard() {
     
 
     useEffect(() => {
+      console.log('User state:', user);
       if(user) {
       fetchData();
 
