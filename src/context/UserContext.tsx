@@ -14,7 +14,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const fetchUser = async () => {
-      const res = await fetch('/api/user'); // Adjust the endpoint as needed
+      const res = await fetch('/api/users'); // Adjust the endpoint as needed
       if (res.ok) {
         const userData: UserContextType = await res.json();
         setUser(userData);
