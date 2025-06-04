@@ -39,7 +39,6 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
           groupId: groupId, 
           role,
           password,
-          leader: leaderId, 
         }),
       })
 
