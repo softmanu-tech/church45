@@ -70,7 +70,6 @@ function LoadingSkeleton() {
 }
 
 export default function LeaderDashboard() {
-  const user = useUser();
   const [data, setData] = useState<DashboardResponse| null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
