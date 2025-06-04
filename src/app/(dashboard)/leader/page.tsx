@@ -1,8 +1,6 @@
 'use client';
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { useUser } from '@/context/UserContext';
-
 import { motion } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
