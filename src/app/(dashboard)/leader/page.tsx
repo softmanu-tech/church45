@@ -129,9 +129,6 @@ export default function LeaderDashboard() {
 
     useEffect(() => {
       fetchData();
-
-
-      }
     }, [selectedEventId, fromDate, toDate]);
     
 
