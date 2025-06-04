@@ -132,7 +132,6 @@ export default function LeaderDashboard() {
     }, [selectedEventId, fromDate, toDate]);
     
 
-
   const filteredMembers = useMemo(() => {
     if (!data) return [];
 
