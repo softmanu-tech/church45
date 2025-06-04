@@ -85,7 +85,7 @@ export default function LeaderDashboard() {
   const [sortKey, setSortKey] = useState<'name' | 'attendanceCount' | 'lastAttendanceDate' | 'rating'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  // New filters for events and dates
+  // New filters for ev
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [fromDate, setFromDate] = useState<string>(''); // YYYY-MM-DD
   const [toDate, setToDate] = useState<string>(''); // YYYY-MM-DD
