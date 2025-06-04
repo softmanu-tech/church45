@@ -7,11 +7,10 @@ import { toast } from "react-toastify"
 
 interface CreateMemberFormProps {
   groupId: string; 
-  leaderId: string; 
   onMemberCreated: () => void; // Optional callback function to be called after member creation
 }
 
-export function CreateMemberForm({ groupId, leaderId, onMemberCreated }: CreateMemberFormProps) {
+export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
