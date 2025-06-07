@@ -7,7 +7,7 @@ import { toast } from "react-toastify"
 
 interface CreateMemberFormProps {
   groupId: string; 
-  onMemberCreated: () => void; // Optional callback function to be called after member creation
+  onMemberCreated: () => void; // Optional callback function to be called after member 
 }
 
 export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormProps) {
