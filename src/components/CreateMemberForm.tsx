@@ -57,7 +57,7 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
       setPassword("")
 
       toast.success("Member created successfully!")
-      onMemberCreated()
+      onMemberCreated?.()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create member");
       console.error("Error creating member:", error)
@@ -99,8 +99,7 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          placeholder="+1234567890"
+          placeholder="+2544567890"
           disabled={loading}
         />
       </div>
@@ -135,6 +134,8 @@ export function CreateMemberForm({ groupId, onMemberCreated }: CreateMemberFormP
           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
+          <option value="" disabled>Select role</option>
+
           <option value="member">Member</option>
         </select>
       </div>
